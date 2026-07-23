@@ -68,6 +68,18 @@ file names, paths, URIs, thumbnails, OCR, signatures, face data, and user-entere
   manifest therefore includes `INTERNET`, and release disclosures must no longer describe the
   application as having no network capability.
 
+## Phase 7 ID-photo controls
+
+- Face detection and person segmentation are bundled and run on-device. FormReady performs no face
+  recognition/identity matching, creates no face embeddings, and does not persist landmarks,
+  segmentation masks, or guidance results.
+- Face placement is advisory; exact file rules are validated separately and no acceptance,
+  biometric-compliance, government-approval, or affiliation claim is made.
+- Background replacement is opt-in behind `PersonSegmentationEngine`; users can preview and refine
+  its normalized mask or export with the original background when the beta model is unsuitable.
+- Temporary full-resolution inputs remain in no-backup staging; external-camera captures and print
+  candidates participate in private temporary-file cleanup.
+
 ## Threats tracked
 
 Malformed/image/PDF bombs, decompression expansion, path traversal, lost grants, non-seekable providers, storage exhaustion, cancellation races, duplicate work, process death, malicious incoming intents, metadata leakage, and accidental logging require explicit tests in the implementing phase.

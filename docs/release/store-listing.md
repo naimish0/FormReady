@@ -22,6 +22,8 @@ selected.
 - Match decimal KB/MB or binary KiB/MiB limits.
 - Crop to fill or fit with padding without silently stretching the image.
 - Export JPEG or PNG and review Ready, warning and Not Ready results.
+- Use the optional ID-photo workflow for advisory one-face/pose placement, on-device background
+  replacement with manual refinement, and 4×6/A4 print sheets. It does not guarantee acceptance.
 
 ### Prepare signatures
 

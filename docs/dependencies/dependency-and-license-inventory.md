@@ -1,6 +1,6 @@
 # Dependency and licence inventory
 
-Direct production dependencies through Phase 6:
+Direct production dependencies through Phase 7:
 
 | Dependency | Version | Purpose | Licence/data behaviour |
 |---|---:|---|---|
@@ -23,14 +23,18 @@ Direct production dependencies through Phase 6:
 | ML Kit Document Scanner | 16.0.0 | on-device enhanced multi-page scan UI | Google APIs/ML Kit terms; dynamic module delivery and SDK metrics |
 | ML Kit Text Recognition | 16.0.1 | bundled Latin OCR | Google APIs/ML Kit terms; on-device content processing and SDK metrics |
 | ML Kit Text Recognition Devanagari | 16.0.1 | bundled Devanagari OCR | Google APIs/ML Kit terms; on-device content processing and SDK metrics |
+| ML Kit Face Detection | 16.1.7 | bundled one-face placement guidance | Google APIs/ML Kit terms; on-device processing and SDK metrics |
+| ML Kit Selfie Segmentation | 16.0.0-beta6 | bundled optional person mask | Google APIs/ML Kit terms; beta, on-device processing and SDK metrics |
 
 JUnit, AndroidX Test, Espresso, Compose test, WorkManager testing, and coroutines-test are
 test-only and Apache 2.0 except JUnit 4 (EPL 1.0).
 
-AndroidX Graphics Path and DataStore contribute small native libraries for the four packaged ABIs;
-Phase 5 universal-APK checks verified 16 KB ZIP and `0x4000` ELF segment alignment. No app-authored
+AndroidX Graphics Path and DataStore contribute small native libraries for the four packaged ABIs.
+Phase 7 universal-APK checks verified 16 KB ZIP alignment; every 64-bit native library uses
+`0x4000` ELF load-segment alignment. No app-authored
 native library, ad/consent SDK, billing SDK, PDF engine, camera SDK, image loader, or general
-network client is shipped. ML Kit adds bundled OCR native/model assets and SDK metrics. PDF inspection, rendering, and
+network client is shipped. ML Kit adds bundled OCR, face-detection, and segmentation native/model
+assets plus documented SDK metrics. PDF inspection, rendering, and
 flattened generation use Android platform APIs rather than a third-party PDF engine. Signature capture delegates to an
 installed camera activity and therefore adds no camera dependency or permission. Re-run the
 licence and data-behaviour audit whenever the catalog changes.

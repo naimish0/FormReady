@@ -5,6 +5,7 @@
 | Domain | Job transitions, validation aggregation, units, physical-to-pixel rounding, generic presets, bounded preset-import validation, crop geometry, bounded/non-monotonic JPEG solver, signature option bounds, PDF flattening policy bounds, and processing-plan round-trip tests | DAO concurrency and destructive-migration rejection |
 | Data | Room schemas exported; 1-to-3 migration preserves records and adds validation/readiness/favourite defaults; expanded settings persistence/reset | Concurrent history/preset mutation stress |
 | Processing | Bounded private staging; JPEG/PNG/WebP inspection; corrupt, zero-byte and animated rejection; all EXIF orientations; exact/maximum geometry; native DPI reopen; target-unreachable cleanup; expired/explicit temporary cleanup; completed-output preservation; synthetic 48 MP processing; signature cleanup/crop/recolour/preview; mixed-page PDF inspection, lazy preview, flattened reopen/render validation, unreachable PDF targets, and images-to-PDF | Low-storage provider fixture and API 24 execution |
+| ID photo | Normalized mask bounds, durable plan round-trip, exact inherited photo validation, and reopened print-sheet generation | Synthetic one/no/multiple-face, segmentation/manual-refinement visual goldens and physical print measurement |
 | UI | Physical-device Home/Settings, Photo requirement/editor, Signature import/camera/drawing, and honest PDF mode/navigation tests; responsive Phase 4 action groups | Phase 4 UI rerun on an awake device; 200% font, TalkBack, RTL, reviewed Hindi, rotation |
 | Privacy | Manifest audit; backup/cleartext disabled; metadata removal test; private partial cleanup; diagnostic export allowlist test; opt-in recents screenshot protection | Airplane-mode run |
 | Build | Debug assembly, unit tests, lint, release/R8 bundle, debug APK install, unsigned AAB Bundletool validation, seed Baseline Profile packaging, universal-APK 16 KB zip alignment, and packaged ELF load-segment alignment | Production-signed AAB/APK validation and generated Baseline Profile/Macrobenchmark evidence |
@@ -86,3 +87,12 @@ Only deterministic synthetic fixtures may be used. Release evidence must record 
 - Bundletool and universal-APK 16 KB alignment checks passed; every 64-bit ML Kit OCR ELF load
   segment uses `0x4000` alignment.
 - Scanner/OCR device execution remains open because no connected device was available.
+
+## Phase 7 reference run — 2026-07-23
+
+- Local JVM/lint/debug/release gates passed with 28 unit tests.
+- Bundletool and universal-APK 16 KB alignment checks passed; every packaged 64-bit native
+  library, including ML Kit face detection, OCR, and segmentation components, uses `0x4000` ELF
+  load-segment alignment.
+- ID capture, face guidance, background edge quality, print scaling, accessibility, memory pressure,
+  and API 24 execution remain open because the only detected device was offline.

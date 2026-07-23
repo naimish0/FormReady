@@ -10,6 +10,8 @@ import com.rameshta.formready.core.model.OutputFormat
 import com.rameshta.formready.core.model.OutputSpecification
 import com.rameshta.formready.core.model.ProcessingPlan
 import com.rameshta.formready.core.model.SignatureOptions
+import com.rameshta.formready.core.model.IdPhotoOptions
+import com.rameshta.formready.core.model.MaskStroke
 import com.rameshta.formready.core.model.ValidationOutcome
 import com.rameshta.formready.core.model.ValidationRuleResult
 import org.json.JSONArray
@@ -94,6 +96,28 @@ object PhotoPlanCodec {
                     .put("minimumDpi", options.minimumDpi)
                     .put("minimumJpegQuality", options.minimumJpegQuality)
                     .put("maximumPasses", options.maximumPasses)
+            } ?: JSONObject.NULL,
+        )
+        .put(
+            "idPhotoOptions",
+            plan.idPhotoOptions?.let { options ->
+                JSONObject()
+                    .put("replaceBackground", options.replaceBackground)
+                    .put("backgroundArgb", options.backgroundArgb)
+                    .put(
+                        "maskStrokes",
+                        JSONArray().apply {
+                            options.maskStrokes.forEach { stroke ->
+                                put(
+                                    JSONObject()
+                                        .put("x", stroke.x.toDouble())
+                                        .put("y", stroke.y.toDouble())
+                                        .put("radius", stroke.radius.toDouble())
+                                        .put("restore", stroke.restore),
+                                )
+                            }
+                        },
+                    )
             } ?: JSONObject.NULL,
         )
         .put("hardRuleIds", JSONArray(plan.hardRuleIds.toList()))
@@ -199,6 +223,26 @@ object PhotoPlanCodec {
                     minimumDpi = options.optInt("minimumDpi", 120),
                     minimumJpegQuality = options.optInt("minimumJpegQuality", 40),
                     maximumPasses = options.optInt("maximumPasses", 6),
+                )
+            },
+            idPhotoOptions = root.optJSONObject("idPhotoOptions")?.let { options ->
+                val strokes = options.optJSONArray("maskStrokes") ?: JSONArray()
+                IdPhotoOptions(
+                    replaceBackground = options.optBoolean("replaceBackground", false),
+                    backgroundArgb = options.optInt("backgroundArgb", 0xFFFFFFFF.toInt()),
+                    maskStrokes = buildList {
+                        for (index in 0 until strokes.length()) {
+                            val stroke = strokes.getJSONObject(index)
+                            add(
+                                MaskStroke(
+                                    x = stroke.getDouble("x").toFloat(),
+                                    y = stroke.getDouble("y").toFloat(),
+                                    radius = stroke.getDouble("radius").toFloat(),
+                                    restore = stroke.getBoolean("restore"),
+                                ),
+                            )
+                        }
+                    },
                 )
             },
         )

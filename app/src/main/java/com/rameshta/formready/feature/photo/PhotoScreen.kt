@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +34,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -48,6 +50,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -64,6 +67,7 @@ import com.rameshta.formready.core.model.PhysicalUnit
 import com.rameshta.formready.core.model.JobStatus
 import com.rameshta.formready.core.model.OutputFormat
 import com.rameshta.formready.core.model.ValidationOutcome
+import com.rameshta.formready.core.processing.PrintSheetSize
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -75,10 +79,16 @@ fun PhotoRoute(
     val context = LocalContext.current
     val shareTitle = stringResource(R.string.action_share)
     var confirmDiscard by remember { mutableStateOf(false) }
+    var printSheet by remember { mutableStateOf(PrintSheetSize.FOUR_BY_SIX) }
+    var printCopies by remember { mutableStateOf(4) }
+    var printCutGuides by remember { mutableStateOf(true) }
     val photoPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
     ) { uri ->
         if (uri != null) viewModel.selectPhoto(uri, context.contentResolver.getType(uri))
+    }
+    val idCamera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) {
+        viewModel.completeIdCapture(it)
     }
     val saveLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument(
@@ -86,6 +96,13 @@ fun PhotoRoute(
         ),
     ) { destination ->
         if (destination != null) viewModel.saveTo(destination)
+    }
+    val printSheetLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/pdf"),
+    ) { destination ->
+        if (destination != null) {
+            viewModel.savePrintSheet(destination, printSheet, printCopies, printCutGuides)
+        }
     }
 
     fun requestBack() {
@@ -96,7 +113,17 @@ fun PhotoRoute(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.photo_title)) },
+                title = {
+                    Text(
+                        stringResource(
+                            if (state.isIdPhotoMode) {
+                                R.string.id_photo_title
+                            } else {
+                                R.string.photo_title
+                            },
+                        ),
+                    )
+                },
                 navigationIcon = {
                     TextButton(onClick = ::requestBack) {
                         Text(stringResource(R.string.action_back))
@@ -123,24 +150,41 @@ fun PhotoRoute(
                 RequirementsEditor(state = state, viewModel = viewModel)
             }
             item {
-                Button(
-                    onClick = {
-                        photoPicker.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = {
+                            photoPicker.launch(
+                                PickVisualMediaRequest(
+                                    ActivityResultContracts.PickVisualMedia.ImageOnly,
+                                ),
+                            )
+                        },
+                        enabled = !state.isLoadingInput && state.jobStatus == null,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(
+                            stringResource(
+                                if (state.metadata == null) {
+                                    R.string.photo_choose
+                                } else {
+                                    R.string.photo_choose_different
+                                },
+                            ),
                         )
-                    },
-                    enabled = !state.isLoadingInput && state.jobStatus == null,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(
-                        stringResource(
-                            if (state.metadata == null) {
-                                R.string.photo_choose
-                            } else {
-                                R.string.photo_choose_different
+                    }
+                    if (state.isIdPhotoMode) {
+                        OutlinedButton(
+                            onClick = {
+                                runCatching { viewModel.createIdCaptureUri() }
+                                    .onSuccess(idCamera::launch)
+                                    .onFailure { viewModel.reportExternalActionUnavailable() }
                             },
-                        ),
-                    )
+                            enabled = !state.isLoadingInput && state.jobStatus == null,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(stringResource(R.string.id_photo_camera))
+                        }
+                    }
                 }
             }
             if (state.isLoadingInput) {
@@ -152,6 +196,11 @@ fun PhotoRoute(
                         CircularProgressIndicator()
                         Text(stringResource(R.string.photo_inspecting))
                     }
+                }
+            }
+            if (state.isIdPhotoMode && state.preview != null) {
+                item {
+                    IdPhotoGuidanceCard(state)
                 }
             }
             state.metadata?.let { metadata ->
@@ -283,6 +332,85 @@ fun PhotoRoute(
                         }
                         OutlinedButton(onClick = viewModel::prepareAnother) {
                             Text(stringResource(R.string.action_prepare_another))
+                        }
+                    }
+                }
+                if (state.isIdPhotoMode) {
+                    item {
+                        Card(modifier = Modifier.fillMaxWidth()) {
+                            Column(
+                                Modifier.padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                Text(
+                                    stringResource(R.string.id_photo_print_sheet),
+                                    style = MaterialTheme.typography.titleMedium,
+                                )
+                                FlowRow(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                                ) {
+                                    PrintSheetSize.entries.forEach { sheet ->
+                                        FilterChip(
+                                            selected = printSheet == sheet,
+                                            onClick = { printSheet = sheet },
+                                            label = {
+                                                Text(
+                                                    stringResource(
+                                                        if (sheet == PrintSheetSize.FOUR_BY_SIX) {
+                                                            R.string.id_photo_sheet_4x6
+                                                        } else {
+                                                            R.string.id_photo_sheet_a4
+                                                        },
+                                                    ),
+                                                )
+                                            },
+                                        )
+                                    }
+                                }
+                                FlowRow(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                                ) {
+                                    listOf(2, 4, 6, 8).forEach { count ->
+                                        FilterChip(
+                                            selected = printCopies == count,
+                                            onClick = { printCopies = count },
+                                            label = {
+                                                Text(
+                                                    stringResource(
+                                                        R.string.id_photo_copy_count,
+                                                        count,
+                                                    ),
+                                                )
+                                            },
+                                        )
+                                    }
+                                }
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(stringResource(R.string.id_photo_cut_guides))
+                                    Switch(
+                                        checked = printCutGuides,
+                                        onCheckedChange = { printCutGuides = it },
+                                    )
+                                }
+                                Text(stringResource(R.string.id_photo_print_instruction))
+                                Button(
+                                    onClick = {
+                                        printSheetLauncher.launch("FormReady-ID-print-sheet.pdf")
+                                    },
+                                    enabled = !state.isPrintSaving,
+                                ) {
+                                    Text(stringResource(R.string.id_photo_save_print_sheet))
+                                }
+                                if (state.printSaved) {
+                                    Text(stringResource(R.string.id_photo_print_saved))
+                                }
+                            }
                         }
                     }
                 }
@@ -533,11 +661,23 @@ private fun RequirementsEditor(
             )
             Text(stringResource(R.string.requirement_safety_margin_explanation))
             Text(stringResource(R.string.photo_background_heading))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 listOf(
                     0xFFFFFFFF.toInt() to R.string.background_white,
-                    0xFFF2F2F2.toInt() to R.string.background_light_gray,
-                    0xFF000000.toInt() to R.string.background_black,
+                    *(if (state.isIdPhotoMode) {
+                        arrayOf(
+                            0xFFF8F6EF.toInt() to R.string.background_off_white,
+                            0xFFDDEEFF.toInt() to R.string.background_light_blue,
+                        )
+                    } else {
+                        arrayOf(
+                            0xFFF2F2F2.toInt() to R.string.background_light_gray,
+                            0xFF000000.toInt() to R.string.background_black,
+                        )
+                    }),
                 ).forEach { (colour, label) ->
                     FilterChip(
                         selected = state.backgroundArgb == colour,
@@ -545,6 +685,20 @@ private fun RequirementsEditor(
                         label = { Text(stringResource(label)) },
                     )
                 }
+            }
+            if (state.isIdPhotoMode) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(stringResource(R.string.id_photo_background_replacement))
+                    Switch(
+                        checked = state.replaceBackground,
+                        onCheckedChange = viewModel::setBackgroundReplacement,
+                    )
+                }
+                Text(stringResource(R.string.id_photo_background_notice))
             }
         }
     }
@@ -555,6 +709,7 @@ private fun PhotoEditor(
     state: PhotoUiState,
     viewModel: PhotoViewModel,
 ) {
+    var restoreMask by remember { mutableStateOf(true) }
     val transformState = rememberTransformableState { zoomChange, panChange, _ ->
         viewModel.transformGesture(
             zoomChange = zoomChange,
@@ -611,6 +766,77 @@ private fun PhotoEditor(
                     )
                 }
                 Text(stringResource(R.string.photo_gesture_hint))
+                if (state.isIdPhotoMode && state.replaceBackground) {
+                    Text(stringResource(R.string.id_photo_mask_editor_help))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(
+                                (preview.width.toFloat() / preview.height)
+                                    .coerceIn(0.25f, 4f),
+                            )
+                            .clip(MaterialTheme.shapes.medium)
+                            .border(
+                                1.dp,
+                                MaterialTheme.colorScheme.outline,
+                                MaterialTheme.shapes.medium,
+                            )
+                            .pointerInput(restoreMask) {
+                                detectDragGestures { change, _ ->
+                                    change.consume()
+                                    viewModel.addMaskStroke(
+                                        x = change.position.x / size.width,
+                                        y = change.position.y / size.height,
+                                        radius = 0.03f,
+                                        restore = restoreMask,
+                                    )
+                                }
+                            },
+                    ) {
+                        Image(
+                            bitmap = preview,
+                            contentDescription = stringResource(
+                                R.string.id_photo_mask_editor_description,
+                            ),
+                            contentScale = ContentScale.FillBounds,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        FilterChip(
+                            selected = restoreMask,
+                            onClick = { restoreMask = true },
+                            label = { Text(stringResource(R.string.id_photo_mask_restore)) },
+                        )
+                        FilterChip(
+                            selected = !restoreMask,
+                            onClick = { restoreMask = false },
+                            label = { Text(stringResource(R.string.id_photo_mask_erase)) },
+                        )
+                        TextButton(onClick = viewModel::clearMaskStrokes) {
+                            Text(stringResource(R.string.id_photo_mask_clear))
+                        }
+                    }
+                    OutlinedButton(
+                        onClick = viewModel::previewIdBackground,
+                        enabled = !state.isLoadingInput,
+                    ) {
+                        Text(stringResource(R.string.id_photo_preview_background))
+                    }
+                    state.idProcessedPreview?.let { processed ->
+                        Image(
+                            bitmap = processed,
+                            contentDescription = stringResource(
+                                R.string.id_photo_processed_preview,
+                            ),
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.fillMaxWidth().heightIn(max = 360.dp),
+                        )
+                    }
+                }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(
@@ -706,6 +932,47 @@ private fun PhotoEditor(
         }
     }
 }
+
+@Composable
+private fun IdPhotoGuidanceCard(state: PhotoUiState) {
+    val resources = LocalContext.current.resources
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(
+                stringResource(R.string.id_photo_guidance_heading),
+                style = MaterialTheme.typography.titleMedium,
+            )
+            state.faceGuidance?.let { guidance ->
+                Text(stringResource(R.string.id_photo_face_count, guidance.faceCount))
+                Text(
+                    if (guidance.warnings.isEmpty()) {
+                        stringResource(R.string.id_photo_guidance_ok)
+                    } else {
+                        stringResource(
+                            R.string.id_photo_guidance_warning,
+                            guidance.warnings.joinToString {
+                                resources.getString(idPhotoWarningResource(it))
+                            },
+                        )
+                    },
+                )
+            } ?: Text(stringResource(R.string.id_photo_guidance_checking))
+        }
+    }
+}
+
+private fun idPhotoWarningResource(code: String): Int =
+    when (code) {
+        "NO_FACE_DETECTED" -> R.string.id_photo_warning_no_face
+        "MULTIPLE_FACES_DETECTED" -> R.string.id_photo_warning_multiple_faces
+        "HEAD_TILTED" -> R.string.id_photo_warning_head_tilted
+        "FACE_TOO_SMALL" -> R.string.id_photo_warning_face_small
+        "EYE_LINE_REVIEW" -> R.string.id_photo_warning_eye_line
+        else -> R.string.id_photo_warning_review
+    }
 
 @Composable
 private fun ResultCard(state: PhotoUiState) {

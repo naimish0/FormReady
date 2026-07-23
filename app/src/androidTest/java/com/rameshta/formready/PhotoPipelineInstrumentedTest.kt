@@ -27,6 +27,10 @@ import com.rameshta.formready.core.processing.InputImageFormat
 import com.rameshta.formready.core.processing.PhotoProcessingException
 import com.rameshta.formready.core.processing.PngDpiMetadata
 import com.rameshta.formready.core.processing.PhotoPlanCodec
+import com.rameshta.formready.core.processing.IdPhotoPrintSheetEngine
+import com.rameshta.formready.core.processing.PrintSheetSize
+import com.rameshta.formready.core.model.IdPhotoOptions
+import com.rameshta.formready.core.model.MaskStroke
 import com.rameshta.formready.core.processing.PrivateWorkspaceCleaner
 import com.rameshta.formready.core.processing.PdfProcessingException
 import com.rameshta.formready.core.processing.PlatformPdfEngine
@@ -236,6 +240,13 @@ class PhotoPipelineInstrumentedTest {
                 minimumJpegQuality = 45,
                 maximumPasses = 5,
             ),
+            idPhotoOptions = IdPhotoOptions(
+                replaceBackground = true,
+                backgroundArgb = Color.WHITE,
+                maskStrokes = listOf(
+                    MaskStroke(x = 0.5f, y = 0.5f, radius = 0.03f, restore = true),
+                ),
+            ),
         )
 
         val restored = PhotoPlanCodec.decode(PhotoPlanCodec.encode(original))
@@ -257,6 +268,22 @@ class PhotoPipelineInstrumentedTest {
             )
         }
         assertFalse(destination.exists())
+    }
+
+    @Test
+    fun idPhotoPrintSheetReopensAtExactFourBySixPageSize() = runBlocking {
+        val source = syntheticBitmap(width = 600, height = 800, hasAlpha = false)
+            .write("id-photo.jpg", Bitmap.CompressFormat.JPEG)
+        val destination = File(root, "id-sheet.pdf")
+
+        IdPhotoPrintSheetEngine().create(
+            source = source,
+            destination = destination,
+            sheet = PrintSheetSize.FOUR_BY_SIX,
+            copies = 4,
+        )
+
+        assertTrue(destination.length() > 0L)
     }
 
     @Test

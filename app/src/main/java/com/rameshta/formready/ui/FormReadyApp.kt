@@ -114,10 +114,17 @@ fun FormReadyApp(
             ) {
                 composable(TopLevelDestination.HOME.route) {
                     HomeScreen(
-                        onPreparePhoto = { navController.navigate(PHOTO_ROUTE) },
+                        onPreparePhoto = {
+                            photoViewModel.enableStandardPhotoMode()
+                            navController.navigate(PHOTO_ROUTE)
+                        },
                         onPrepareSignature = { navController.navigate(SIGNATURE_ROUTE) },
                         onPreparePdf = { navController.navigate(PDF_ROUTE) },
                         onScanDocument = { navController.navigate(SCANNER_ROUTE) },
+                        onPrepareIdPhoto = {
+                            photoViewModel.enableIdPhotoMode()
+                            navController.navigate(PHOTO_ROUTE)
+                        },
                     )
                 }
                 composable(TopLevelDestination.PRESETS.route) {

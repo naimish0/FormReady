@@ -1,9 +1,12 @@
 package com.rameshta.formready.feature.photo
 
 import android.graphics.Bitmap
+import android.content.Context
 import android.net.Uri
+import androidx.core.content.FileProvider
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -21,6 +24,8 @@ import com.rameshta.formready.core.model.PhysicalUnit
 import com.rameshta.formready.core.model.PhotoPresetCatalog
 import com.rameshta.formready.core.model.RequirementConversions
 import com.rameshta.formready.core.model.JobStatus
+import com.rameshta.formready.core.model.IdPhotoOptions
+import com.rameshta.formready.core.model.MaskStroke
 import com.rameshta.formready.core.model.JobType
 import com.rameshta.formready.core.model.NormalizedTransform
 import com.rameshta.formready.core.model.OutputArtifact
@@ -29,6 +34,11 @@ import com.rameshta.formready.core.model.OutputSpecification
 import com.rameshta.formready.core.model.ProcessingPlan
 import com.rameshta.formready.core.model.ValidationRuleResult
 import com.rameshta.formready.core.processing.ImageMetadata
+import com.rameshta.formready.core.processing.FaceGuidance
+import com.rameshta.formready.core.processing.FaceGuidanceEngine
+import com.rameshta.formready.core.processing.IdPhotoPrintSheetEngine
+import com.rameshta.formready.core.processing.PrintSheetSize
+import com.rameshta.formready.core.processing.PersonSegmentationEngine
 import com.rameshta.formready.core.processing.PhotoOutputAccess
 import com.rameshta.formready.core.processing.PhotoCropCalculator
 import com.rameshta.formready.core.processing.PhotoPlanCodec
@@ -36,6 +46,7 @@ import com.rameshta.formready.core.processing.PhotoPreparationService
 import com.rameshta.formready.core.processing.ProcessingScheduler
 import com.rameshta.formready.core.processing.ValidationResultCodec
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -43,7 +54,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.util.UUID
+import java.io.File
 import javax.inject.Inject
 
 data class PhotoResultUi(
@@ -82,6 +96,13 @@ data class PhotoUiState(
     val result: PhotoResultUi? = null,
     val isSaving: Boolean = false,
     val saveSucceeded: Boolean = false,
+    val isIdPhotoMode: Boolean = false,
+    val faceGuidance: FaceGuidance? = null,
+    val replaceBackground: Boolean = false,
+    val maskStrokes: List<MaskStroke> = emptyList(),
+    val isPrintSaving: Boolean = false,
+    val printSaved: Boolean = false,
+    val idProcessedPreview: ImageBitmap? = null,
 ) {
     val hasDraft: Boolean
         get() = metadata != null || isLoadingInput || jobStatus != null
@@ -109,6 +130,7 @@ data class PhotoUiState(
 
 @HiltViewModel
 class PhotoViewModel @Inject constructor(
+    @param:ApplicationContext private val context: Context,
     private val savedStateHandle: SavedStateHandle,
     private val preparationService: PhotoPreparationService,
     private val jobs: JobRepository,
@@ -116,7 +138,11 @@ class PhotoViewModel @Inject constructor(
     private val scheduler: ProcessingScheduler,
     private val outputAccess: PhotoOutputAccess,
     private val settingsRepository: SettingsRepository,
+    private val faceGuidanceEngine: FaceGuidanceEngine,
+    private val printSheetEngine: IdPhotoPrintSheetEngine,
+    private val personSegmentationEngine: PersonSegmentationEngine,
 ) : ViewModel() {
+    private var pendingIdCapture: File? = null
     private val mutableState = MutableStateFlow(
         PhotoUiState(
             widthText = savedStateHandle[KEY_WIDTH] ?: "600",
@@ -153,6 +179,8 @@ class PhotoViewModel @Inject constructor(
             panY = savedStateHandle[KEY_PAN_Y] ?: 0f,
             rotationQuarterTurns = savedStateHandle[KEY_ROTATION] ?: 0,
             straightenDegrees = savedStateHandle[KEY_STRAIGHTEN] ?: 0f,
+            isIdPhotoMode = savedStateHandle[KEY_ID_MODE] ?: false,
+            replaceBackground = savedStateHandle[KEY_REPLACE_BACKGROUND] ?: false,
         ),
     )
     val uiState: StateFlow<PhotoUiState> = mutableState.asStateFlow()
@@ -222,14 +250,20 @@ class PhotoViewModel @Inject constructor(
                     draftId,
                     reportedMimeType,
                 )
-                val preview = preparationService.loadPreview(draftId).toComposePreview()
-                metadata to preview
-            }.onSuccess { (metadata, preview) ->
+                val bitmap = preparationService.loadPreview(draftId)
+                val guidance = if (mutableState.value.isIdPhotoMode) {
+                    faceGuidanceEngine.analyze(bitmap)
+                } else {
+                    null
+                }
+                Triple(metadata, bitmap.toComposePreview(), guidance)
+            }.onSuccess { (metadata, preview, guidance) ->
                 mutableState.update {
                     it.copy(
                         isLoadingInput = false,
                         metadata = metadata,
                         preview = preview,
+                        faceGuidance = guidance,
                     )
                 }
             }.onFailure { error ->
@@ -243,8 +277,129 @@ class PhotoViewModel @Inject constructor(
         }
     }
 
+    fun createIdCaptureUri(): Uri {
+        val directory = File(context.cacheDir, "id-photo-captures").apply { mkdirs() }
+        val file = File(directory, "${UUID.randomUUID()}.jpg")
+        pendingIdCapture = file
+        return FileProvider.getUriForFile(context, "${context.packageName}.files", file)
+    }
+
+    fun completeIdCapture(success: Boolean) {
+        val file = pendingIdCapture.also { pendingIdCapture = null } ?: return
+        if (success && file.length() > 0L) {
+            selectPhoto(Uri.fromFile(file), "image/jpeg")
+        } else {
+            file.delete()
+        }
+    }
+
     fun setWidth(value: String) =
         updateText(KEY_WIDTH, value) { state, filtered -> state.copy(widthText = filtered) }
+
+    fun enableIdPhotoMode() {
+        savedStateHandle[KEY_ID_MODE] = true
+        savedStateHandle[KEY_WIDTH] = "600"
+        savedStateHandle[KEY_HEIGHT] = "800"
+        savedStateHandle[KEY_MAXIMUM_KB] = "200"
+        savedStateHandle[KEY_DPI] = "300"
+        savedStateHandle[KEY_DIMENSION_INPUT_MODE] = DimensionInputMode.PIXELS.name
+        savedStateHandle[KEY_FORMAT] = OutputFormat.JPEG.name
+        savedStateHandle[KEY_CROP_MODE] = CropMode.CROP_FILL.name
+        savedStateHandle[KEY_BACKGROUND] = 0xFFFFFFFF.toInt()
+        mutableState.update {
+            it.copy(
+                isIdPhotoMode = true,
+                widthText = "600",
+                heightText = "800",
+                maximumKbText = "200",
+                dpiText = "300",
+                dimensionInputMode = DimensionInputMode.PIXELS,
+                outputFormat = OutputFormat.JPEG,
+                cropMode = CropMode.CROP_FILL,
+                selectedPresetId = null,
+                backgroundArgb = 0xFFFFFFFF.toInt(),
+                result = null,
+            )
+        }
+    }
+
+    fun enableStandardPhotoMode() {
+        savedStateHandle[KEY_ID_MODE] = false
+        savedStateHandle[KEY_REPLACE_BACKGROUND] = false
+        mutableState.update {
+            it.copy(
+                isIdPhotoMode = false,
+                faceGuidance = null,
+                replaceBackground = false,
+                maskStrokes = emptyList(),
+            )
+        }
+    }
+
+    fun setBackgroundReplacement(enabled: Boolean) {
+        savedStateHandle[KEY_REPLACE_BACKGROUND] = enabled
+        mutableState.update {
+            it.copy(
+                replaceBackground = enabled,
+                maskStrokes = emptyList(),
+                idProcessedPreview = null,
+            )
+        }
+    }
+
+    fun setIdBackground(argb: Int) {
+        setBackground(argb)
+        mutableState.update { it.copy(idProcessedPreview = null) }
+    }
+
+    fun addMaskStroke(x: Float, y: Float, radius: Float, restore: Boolean) {
+        mutableState.update { state ->
+            if (state.maskStrokes.size >= 500) {
+                state.copy(errorCode = "MASK_STROKE_LIMIT")
+            } else {
+                state.copy(
+                    maskStrokes = state.maskStrokes + MaskStroke(
+                        x = x.coerceIn(0f, 1f),
+                        y = y.coerceIn(0f, 1f),
+                        radius = radius.coerceIn(0.002f, 0.25f),
+                        restore = restore,
+                    ),
+                    idProcessedPreview = null,
+                )
+            }
+        }
+    }
+
+    fun clearMaskStrokes() {
+        mutableState.update { it.copy(maskStrokes = emptyList(), idProcessedPreview = null) }
+    }
+
+    fun previewIdBackground() {
+        val state = mutableState.value
+        val preview = state.preview ?: return
+        if (!state.isIdPhotoMode || !state.replaceBackground || state.isLoadingInput) return
+        mutableState.update { it.copy(isLoadingInput = true, errorCode = null) }
+        viewModelScope.launch {
+            runCatching {
+                personSegmentationEngine.replaceBackground(
+                    source = preview.asAndroidBitmap(),
+                    backgroundArgb = state.backgroundArgb,
+                    strokes = state.maskStrokes,
+                ).asImageBitmap()
+            }.onSuccess { processed ->
+                mutableState.update {
+                    it.copy(isLoadingInput = false, idProcessedPreview = processed)
+                }
+            }.onFailure { error ->
+                mutableState.update {
+                    it.copy(
+                        isLoadingInput = false,
+                        errorCode = error.message ?: "SEGMENTATION_UNAVAILABLE",
+                    )
+                }
+            }
+        }
+    }
 
     fun setHeight(value: String) =
         updateText(KEY_HEIGHT, value) { state, filtered -> state.copy(heightText = filtered) }
@@ -504,6 +659,15 @@ class PhotoViewModel @Inject constructor(
                 *if (dpi != null) arrayOf("photo.dpi") else emptyArray(),
             ),
             advisoryRuleIds = setOf("photo.quality_guard", "photo.upscaling"),
+            idPhotoOptions = if (state.isIdPhotoMode) {
+                IdPhotoOptions(
+                    replaceBackground = state.replaceBackground,
+                    backgroundArgb = state.backgroundArgb,
+                    maskStrokes = state.maskStrokes,
+                )
+            } else {
+                null
+            },
         )
         mutableState.update { it.copy(jobStatus = JobStatus.QUEUED, errorCode = null) }
         viewModelScope.launch {
@@ -547,6 +711,53 @@ class PhotoViewModel @Inject constructor(
                         )
                     }
                 }
+        }
+    }
+
+    fun savePrintSheet(
+        destination: Uri,
+        sheet: PrintSheetSize,
+        copies: Int,
+        cutGuides: Boolean,
+    ) {
+        val state = mutableState.value
+        val result = state.result ?: return
+        if (!state.isIdPhotoMode || state.isPrintSaving) return
+        val dimensions = state.resolvedDimensions() ?: return
+        val dpi = state.dpiText.toIntOrNull()?.takeIf { it > 0 } ?: return
+        val widthMm = dimensions.first.toDouble() / dpi * 25.4
+        val heightMm = dimensions.second.toDouble() / dpi * 25.4
+        mutableState.update {
+            it.copy(isPrintSaving = true, printSaved = false, errorCode = null)
+        }
+        viewModelScope.launch {
+            val candidate = File(context.noBackupFilesDir, "print-sheets/${UUID.randomUUID()}.pdf")
+            runCatching {
+                printSheetEngine.create(
+                    source = outputAccess.outputFile(result.artifact),
+                    destination = candidate,
+                    sheet = sheet,
+                    copies = copies,
+                    photoWidthMm = widthMm,
+                    photoHeightMm = heightMm,
+                    cutGuides = cutGuides,
+                )
+                withContext(Dispatchers.IO) {
+                    context.contentResolver.openOutputStream(destination, "wt")?.use { output ->
+                        candidate.inputStream().buffered().use { it.copyTo(output) }
+                    } ?: error("DESTINATION_WRITE_FAILED")
+                }
+            }.onSuccess {
+                mutableState.update { it.copy(isPrintSaving = false, printSaved = true) }
+            }.onFailure { error ->
+                mutableState.update {
+                    it.copy(
+                        isPrintSaving = false,
+                        errorCode = error.message ?: "PRINT_SHEET_FAILED",
+                    )
+                }
+            }
+            candidate.delete()
         }
     }
 
@@ -608,6 +819,8 @@ class PhotoViewModel @Inject constructor(
                 cropMode = it.cropMode,
                 backgroundArgb = it.backgroundArgb,
                 selectedPresetId = it.selectedPresetId,
+                isIdPhotoMode = it.isIdPhotoMode,
+                replaceBackground = it.replaceBackground,
             )
         }
     }
@@ -653,6 +866,9 @@ class PhotoViewModel @Inject constructor(
                 },
                 backgroundArgb = plan.output.backgroundArgb,
                 selectedPresetId = null,
+                isIdPhotoMode = plan.idPhotoOptions != null,
+                replaceBackground = plan.idPhotoOptions?.replaceBackground ?: false,
+                maskStrokes = emptyList(),
             )
         }
         savedStateHandle[KEY_WIDTH] = plan.output.widthPx?.toString().orEmpty()
@@ -672,6 +888,7 @@ class PhotoViewModel @Inject constructor(
         savedStateHandle[KEY_CROP_MODE] = mutableState.value.cropMode.name
         savedStateHandle[KEY_BACKGROUND] = plan.output.backgroundArgb
         savedStateHandle.remove<String>(KEY_PRESET_ID)
+        savedStateHandle[KEY_ID_MODE] = plan.idPhotoOptions != null
     }
 
     fun discardDraft(onFinished: () -> Unit) {
@@ -696,10 +913,17 @@ class PhotoViewModel @Inject constructor(
             }
             runCatching {
                 val metadata = preparationService.inspectStaged(draftId)
-                val preview = preparationService.loadPreview(draftId).toComposePreview()
-                metadata to preview
-            }.onSuccess { (metadata, preview) ->
-                mutableState.update { it.copy(metadata = metadata, preview = preview) }
+                val bitmap = preparationService.loadPreview(draftId)
+                val guidance = if (mutableState.value.isIdPhotoMode) {
+                    faceGuidanceEngine.analyze(bitmap)
+                } else {
+                    null
+                }
+                Triple(metadata, bitmap.toComposePreview(), guidance)
+            }.onSuccess { (metadata, preview, guidance) ->
+                mutableState.update {
+                    it.copy(metadata = metadata, preview = preview, faceGuidance = guidance)
+                }
             }.onFailure {
                 savedStateHandle.remove<String>(KEY_DRAFT_ID)
             }
@@ -783,6 +1007,11 @@ class PhotoViewModel @Inject constructor(
 
     private fun Bitmap.toComposePreview(): ImageBitmap = asImageBitmap()
 
+    override fun onCleared() {
+        pendingIdCapture?.delete()
+        super.onCleared()
+    }
+
     companion object {
         private const val KEY_DRAFT_ID = "photo.draftId"
         private const val KEY_WIDTH = "photo.width"
@@ -806,5 +1035,7 @@ class PhotoViewModel @Inject constructor(
         private const val KEY_PAN_Y = "photo.panY"
         private const val KEY_ROTATION = "photo.rotation"
         private const val KEY_STRAIGHTEN = "photo.straighten"
+        private const val KEY_ID_MODE = "photo.idMode"
+        private const val KEY_REPLACE_BACKGROUND = "photo.replaceBackground"
     }
 }

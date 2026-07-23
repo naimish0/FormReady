@@ -139,6 +139,28 @@ data class PdfOptions(
     }
 }
 
+data class MaskStroke(
+    val x: Float,
+    val y: Float,
+    val radius: Float,
+    val restore: Boolean,
+) {
+    init {
+        require(x in 0f..1f && y in 0f..1f)
+        require(radius in 0.002f..0.25f)
+    }
+}
+
+data class IdPhotoOptions(
+    val replaceBackground: Boolean = false,
+    val backgroundArgb: Int = 0xFFFFFFFF.toInt(),
+    val maskStrokes: List<MaskStroke> = emptyList(),
+) {
+    init {
+        require(maskStrokes.size <= 500)
+    }
+}
+
 data class ProcessingPlan(
     val jobId: UUID,
     val transforms: List<NormalizedTransform>,
@@ -147,6 +169,7 @@ data class ProcessingPlan(
     val advisoryRuleIds: Set<String>,
     val signatureOptions: SignatureOptions? = null,
     val pdfOptions: PdfOptions? = null,
+    val idPhotoOptions: IdPhotoOptions? = null,
 )
 
 data class ProcessingJob(

@@ -46,6 +46,12 @@ model or hardware-accelerator compatibility, and diagnostic/usage metrics. ML Ki
 components add Internet access. FormReady has no custom backend and does not send document content
 or OCR results to the developer.
 
+Optional ID-photo guidance and background replacement use bundled ML Kit face detection and person
+segmentation. Portrait pixels, face landmarks, pose angles and segmentation masks are processed
+on-device. FormReady does not recognize identities, compare faces, create face embeddings, or
+persist landmarks or masks. Normalized erase/restore strokes are stored only when needed to run
+the local export job.
+
 ## Diagnostics
 
 The optional local diagnostic export contains only the app version, Android API level, coarse

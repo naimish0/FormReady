@@ -32,6 +32,10 @@ class PrivateWorkspaceCleanerInstrumentedTest {
             parentFile?.mkdirs()
             writeText("capture")
         }
+        val idPhotoCapture = File(context.cacheDir, "id-photo-captures/test.jpg").apply {
+            parentFile?.mkdirs()
+            writeText("capture")
+        }
 
         PrivateWorkspaceCleaner(context).clearTemporaryFiles()
 
@@ -39,6 +43,7 @@ class PrivateWorkspaceCleanerInstrumentedTest {
         assertFalse(partial.exists())
         assertFalse(scannerSession.exists())
         assertFalse(scannerCapture.exists())
+        assertFalse(idPhotoCapture.exists())
         assertTrue(completed.exists())
         completed.delete()
     }
