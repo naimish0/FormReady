@@ -1,6 +1,10 @@
 # Preset schema
 
-Presets use a versioned local representation imported into Room. Phase 0 reserves the durable table; parsing, migrations, generic seed data, and import validation belong to Phase 1/4.
+Presets use a versioned local representation imported into Room. Phase 1 ships conservative,
+generic photo presets in code (portrait 600×800 px, 35×45 mm at 300 DPI, and 2×2 inches at
+300 DPI). Organization-specific presets, remote claims, and unverified compliance language
+remain excluded. The Room table continues to reserve durable custom/versioned presets for
+Phase 4.
 
 Required fields:
 

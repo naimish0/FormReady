@@ -23,8 +23,11 @@ import com.rameshta.formready.core.data.settings.ThemePreference
 import com.rameshta.formready.core.data.settings.UserSettings
 import com.rameshta.formready.feature.history.HistoryScreen
 import com.rameshta.formready.feature.home.HomeScreen
+import com.rameshta.formready.feature.photo.PhotoRoute
+import com.rameshta.formready.feature.photo.PhotoViewModel
 import com.rameshta.formready.feature.presets.PresetsScreen
 import com.rameshta.formready.feature.settings.SettingsScreen
+import com.rameshta.formready.core.model.ProcessingJob
 
 private enum class TopLevelDestination(
     val route: String,
@@ -42,6 +45,9 @@ fun FormReadyApp(
     settings: UserSettings,
     onThemeSelected: (ThemePreference) -> Unit,
     onDynamicColourChanged: (Boolean) -> Unit,
+    photoViewModel: PhotoViewModel,
+    recentJobs: List<ProcessingJob>,
+    recentArtifactsByJob: Map<String, com.rameshta.formready.core.model.OutputArtifact>,
 ) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -51,11 +57,12 @@ fun FormReadyApp(
         modifier = Modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            NavigationBar {
-                TopLevelDestination.entries.forEach { destination ->
+            if (currentDestination?.route != PHOTO_ROUTE) {
+                NavigationBar {
+                    TopLevelDestination.entries.forEach { destination ->
                     val selected = currentDestination?.hierarchy
                         ?.any { it.route == destination.route } == true
-                    NavigationBarItem(
+                        NavigationBarItem(
                         selected = selected,
                         onClick = {
                             navController.navigate(destination.route) {
@@ -73,7 +80,8 @@ fun FormReadyApp(
                         label = {
                             androidx.compose.material3.Text(stringResource(destination.labelRes))
                         },
-                    )
+                        )
+                    }
                 }
             }
         },
@@ -83,9 +91,22 @@ fun FormReadyApp(
                 navController = navController,
                 startDestination = TopLevelDestination.HOME.route,
             ) {
-                composable(TopLevelDestination.HOME.route) { HomeScreen() }
+                composable(TopLevelDestination.HOME.route) {
+                    HomeScreen(
+                        onPreparePhoto = { navController.navigate(PHOTO_ROUTE) },
+                    )
+                }
                 composable(TopLevelDestination.PRESETS.route) { PresetsScreen() }
-                composable(TopLevelDestination.HISTORY.route) { HistoryScreen() }
+                composable(TopLevelDestination.HISTORY.route) {
+                    HistoryScreen(
+                        jobs = recentJobs,
+                        artifactsByJob = recentArtifactsByJob,
+                        onRepeat = { job ->
+                            photoViewModel.reuseRequirements(job.serializedPlan)
+                            navController.navigate(PHOTO_ROUTE)
+                        },
+                    )
+                }
                 composable(TopLevelDestination.SETTINGS.route) {
                     SettingsScreen(
                         settings = settings,
@@ -93,7 +114,15 @@ fun FormReadyApp(
                         onDynamicColourChanged = onDynamicColourChanged,
                     )
                 }
+                composable(PHOTO_ROUTE) {
+                    PhotoRoute(
+                        onBack = { navController.popBackStack() },
+                        viewModel = photoViewModel,
+                    )
+                }
             }
         }
     }
 }
+
+private const val PHOTO_ROUTE = "photo"

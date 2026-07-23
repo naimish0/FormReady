@@ -1,6 +1,6 @@
 # Dependency and licence inventory
 
-Phase 0 direct production dependencies:
+Direct production dependencies through Phase 1:
 
 | Dependency | Version | Purpose | Licence/data behaviour |
 |---|---:|---|---|
@@ -8,6 +8,7 @@ Phase 0 direct production dependencies:
 | Kotlin/Compose plugin | 2.3.21 | Kotlin and Compose compilation | Apache 2.0; build-time only |
 | KSP | 2.3.8 | Room/Hilt code generation | Apache 2.0; build-time only |
 | AndroidX Core | 1.17.0 | Android compatibility | Apache 2.0; no network |
+| AndroidX ExifInterface | 1.4.2 | Local image orientation and JPEG DPI metadata | Apache 2.0; no network |
 | Activity Compose | 1.12.4 | Single Compose activity | Apache 2.0; no network |
 | Lifecycle | 2.10.0 | lifecycle/ViewModel state | Apache 2.0; no network |
 | Compose BOM | 2026.02.01 | compatible Compose set | Apache 2.0; no network |
@@ -20,8 +21,11 @@ Phase 0 direct production dependencies:
 | AndroidX Hilt | 1.4.0 | WorkManager integration | Apache 2.0; no network |
 | kotlinx.coroutines | 1.10.2 | structured concurrency | Apache 2.0; no network |
 
-JUnit, AndroidX Test, Espresso, Compose test, Room testing, WorkManager testing, and coroutines-test are test-only and Apache 2.0 except JUnit 4 (EPL 1.0).
+JUnit, AndroidX Test, Espresso, Compose test, WorkManager testing, and coroutines-test are
+test-only and Apache 2.0 except JUnit 4 (EPL 1.0).
 
-No native library, ad/consent SDK, billing SDK, PDF engine, camera SDK, image loader, ML model, analytics SDK, or network client is shipped in Phase 0. Re-run the licence and data-behaviour audit whenever the catalog changes.
+No native library, ad/consent SDK, billing SDK, PDF engine, camera SDK, image loader, ML model,
+analytics SDK, or network client is shipped through Phase 1. Re-run the licence and
+data-behaviour audit whenever the catalog changes.
 
 The Gradle/AGP/Kotlin versions are intentionally pinned to the API 36-compatible matrix supported by Android Studio Panda 2. Lint may report newer stable toolchain releases; upgrade Android Studio, the Android API target, Gradle, AGP, and the shrinker together as a separately verified build change.

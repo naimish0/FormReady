@@ -1,18 +1,19 @@
 # FormReady architecture
 
-## Module boundaries
+## Single-module package boundaries
 
 ```text
-app
-├── core:model
-├── core:data ─────────> core:model
-├── core:designsystem
-└── core:processing ───> core:data ───> core:model
+app (single Android/Gradle module)
+├── feature/* ───────────────┐
+├── core/designsystem        │
+├── core/processing ─────────┤
+├── core/data ───────────────┤
+└── core/model <─────────────┘
 ```
 
-`app` owns the single-activity Compose shell and feature packages. `core:model` contains immutable domain/state rules. `core:data` owns Room entities/DAOs, repository implementations, and DataStore preferences. `core:processing` owns bounded private staging, processor interfaces, unique WorkManager scheduling, and the export worker. `core:designsystem` owns Material 3 tokens and validation-semantic colours.
+`app` is intentionally the only Gradle module. Package boundaries retain production separation: `core.model` contains immutable domain/state rules, `core.data` owns Room entities/DAOs, repository implementations, and DataStore preferences, `core.processing` owns bounded private staging, image processing, processor interfaces, unique WorkManager scheduling, and export work, and `core.designsystem` owns Material 3 tokens and validation-semantic colours.
 
-The initial module split follows stable ownership boundaries without creating one module per screen. Feature packages remain in `app` until measured build or ownership needs justify extraction.
+Features may depend on core packages. Core packages do not depend on feature/UI packages, and `core.model` remains Android-free. This enforces the important dependency direction without paying multi-module configuration and source-resolution overhead. New Gradle modules require an explicit, measured build-performance or ownership reason.
 
 ## State and dependency flow
 
@@ -22,9 +23,14 @@ Durable jobs use a UUID and typed `QUEUED -> RUNNING -> SUCCEEDED|FAILED|CANCELL
 
 ## File boundaries
 
-External `content://` inputs are streamed to `noBackupFilesDir/staged-inputs` through a `.part` file. Staging is cancellable, bounded at 200 MiB, rejects empty input, and renames the complete private file before exposure. Later phase processors must validate magic bytes and decoded metadata before use.
+External `content://` inputs are streamed to `noBackupFilesDir/staged-inputs` through a `.part`
+file. Staging is cancellable, bounded at 200 MiB, rejects empty input, and renames the complete
+private file before exposure. Photo processing validates magic bytes and decoded metadata,
+normalizes orientation, uses bounded target-aware decoding, and serializes memory-intensive jobs.
 
-Exports will be generated and validated privately before one explicit copy to a user destination. Originals are never overwritten.
+Exports are generated and reopened/validated privately before one explicit copy to a user
+destination. Originals are never overwritten. Output records retain the immutable processing
+recipe, real byte count, reopened dimensions/DPI, readiness, and rule results.
 
 ## Platform
 
@@ -34,4 +40,4 @@ Exports will be generated and validated privately before one explicit copy to a 
 - WorkManager for committed durable exports.
 - Min API 24; compile/target API 36; Java bytecode/toolchain level 17.
 
-No network dependency or permission is present in Phase 0.
+No network dependency or permission is present through Phase 1.
