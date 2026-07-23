@@ -32,7 +32,6 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.rameshta.formready.R
-import com.rameshta.formready.core.data.settings.DefaultByteUnit
 import com.rameshta.formready.core.data.settings.DefaultDimensionUnit
 import com.rameshta.formready.core.data.settings.DefaultImageFormat
 import com.rameshta.formready.core.data.settings.ThemePreference
@@ -145,20 +144,7 @@ fun SettingsScreen(
         }
         item {
             SettingHeading(stringResource(R.string.settings_byte_units))
-            DefaultByteUnit.entries.forEach { unit ->
-                ChoiceRow(
-                    settings.byteUnit == unit,
-                    stringResource(
-                        if (unit == DefaultByteUnit.DECIMAL) {
-                            R.string.byte_unit_decimal
-                        } else {
-                            R.string.byte_unit_binary
-                        },
-                    ),
-                ) {
-                    onSettingsChanged { copy(byteUnit = unit) }
-                }
-            }
+            Text(stringResource(R.string.byte_unit_decimal))
         }
         item {
             SettingHeading(stringResource(R.string.settings_output_destination))

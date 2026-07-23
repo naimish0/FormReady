@@ -5,6 +5,7 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.isHeading
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
@@ -28,6 +29,13 @@ class FormReadyNavigationTest {
         composeRule.onNodeWithText(homeTitle).assertIsDisplayed()
         composeRule.onNodeWithText(settingsNavigation).performClick()
         composeRule.onNode(hasText(settingsTitle) and isHeading()).assertIsDisplayed()
+        composeRule.onNode(hasScrollAction()).performScrollToNode(
+            hasText(activity.getString(R.string.byte_unit_decimal)),
+        )
+        composeRule.onNodeWithText(activity.getString(R.string.byte_unit_decimal))
+            .assertIsDisplayed()
+        check(composeRule.onAllNodesWithText("KiB").fetchSemanticsNodes().isEmpty())
+        check(composeRule.onAllNodesWithText("MiB").fetchSemanticsNodes().isEmpty())
         composeRule.onNode(hasScrollAction()).performScrollToNode(
             hasText(activity.getString(R.string.settings_clear_temporary)),
         )
@@ -75,6 +83,8 @@ class FormReadyNavigationTest {
         composeRule.onNodeWithText(
             activity.getString(R.string.requirement_byte_unit),
         ).assertIsDisplayed()
+        check(composeRule.onAllNodesWithText("KiB").fetchSemanticsNodes().isEmpty())
+        check(composeRule.onAllNodesWithText("MiB").fetchSemanticsNodes().isEmpty())
         composeRule.onNode(hasScrollAction()).performScrollToNode(
             hasText(activity.getString(R.string.photo_choose)),
         )

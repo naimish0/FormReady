@@ -19,7 +19,7 @@ selected.
 
 - Set exact or maximum pixel dimensions.
 - Use millimetres, centimetres or inches with explicit DPI conversion.
-- Match decimal KB/MB or binary KiB/MiB limits.
+- Match familiar KB and MB file-size limits.
 - Crop to fill or fit with padding without silently stretching the image.
 - Export JPEG or PNG and review Ready, warning and Not Ready results.
 - Use the optional ID-photo workflow for advisory one-face/pose placement, on-device background

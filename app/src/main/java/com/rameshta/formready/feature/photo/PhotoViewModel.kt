@@ -12,7 +12,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rameshta.formready.core.data.repository.JobRepository
 import com.rameshta.formready.core.data.repository.OutputArtifactRepository
-import com.rameshta.formready.core.data.settings.DefaultByteUnit
 import com.rameshta.formready.core.data.settings.DefaultDimensionUnit
 import com.rameshta.formready.core.data.settings.DefaultImageFormat
 import com.rameshta.formready.core.data.settings.SettingsRepository
@@ -156,6 +155,13 @@ class PhotoViewModel @Inject constructor(
                 ?: OutputFormat.JPEG,
             byteUnit = savedStateHandle.get<String>(KEY_BYTE_UNIT)
                 ?.let { runCatching { ByteUnit.valueOf(it) }.getOrNull() }
+                ?.let { unit ->
+                    when (unit) {
+                        ByteUnit.KIB -> ByteUnit.KB
+                        ByteUnit.MIB -> ByteUnit.MB
+                        else -> unit
+                    }
+                }
                 ?: ByteUnit.KB,
             dimensionRule = savedStateHandle.get<String>(KEY_DIMENSION_RULE)
                 ?.let { runCatching { DimensionRule.valueOf(it) }.getOrNull() }
@@ -201,11 +207,7 @@ class PhotoViewModel @Inject constructor(
                             outputFormat = if (
                                 defaults.defaultImageFormat == DefaultImageFormat.JPEG
                             ) OutputFormat.JPEG else OutputFormat.PNG,
-                            byteUnit = if (defaults.byteUnit == DefaultByteUnit.DECIMAL) {
-                                ByteUnit.KB
-                            } else {
-                                ByteUnit.KIB
-                            },
+                            byteUnit = ByteUnit.KB,
                             dimensionInputMode = if (
                                 defaults.dimensionUnit == DefaultDimensionUnit.PIXELS
                             ) DimensionInputMode.PIXELS else DimensionInputMode.PHYSICAL,

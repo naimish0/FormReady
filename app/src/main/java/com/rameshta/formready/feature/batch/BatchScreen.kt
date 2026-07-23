@@ -39,6 +39,8 @@ import com.rameshta.formready.R
 import com.rameshta.formready.core.model.CropMode
 import com.rameshta.formready.core.model.JobStatus
 import com.rameshta.formready.core.model.OutputFormat
+import com.rameshta.formready.ui.format.readableFileSize
+import com.rameshta.formready.ui.format.userFacingError
 
 @Composable
 fun BatchRoute(
@@ -103,11 +105,15 @@ fun BatchRoute(
                             enabled = !state.isRunning,
                         )
                     }
+                    Text(
+                        stringResource(R.string.requirement_pixels_help),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         NumberField(
                             value = state.maximumKbText,
                             onValueChange = viewModel::setMaximumKb,
-                            label = stringResource(R.string.requirement_maximum_kb),
+                            label = stringResource(R.string.batch_maximum_size_kb),
                             modifier = Modifier.weight(1f),
                             enabled = !state.isRunning,
                         )
@@ -119,6 +125,10 @@ fun BatchRoute(
                             enabled = !state.isRunning,
                         )
                     }
+                    Text(
+                        stringResource(R.string.requirement_dpi_help),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         listOf(OutputFormat.JPEG, OutputFormat.PNG).forEach { format ->
                             FilterChip(
@@ -188,7 +198,7 @@ fun BatchRoute(
                                     R.string.batch_item_source,
                                     it.widthPx,
                                     it.heightPx,
-                                    it.byteCount,
+                                    readableFileSize(it.byteCount),
                                 ),
                             )
                         }
@@ -199,11 +209,16 @@ fun BatchRoute(
                             ),
                         )
                         item.artifact?.let {
-                            Text(stringResource(R.string.batch_item_output, it.byteCount))
+                            Text(
+                                stringResource(
+                                    R.string.batch_item_output,
+                                    readableFileSize(it.byteCount),
+                                ),
+                            )
                         }
                         item.errorCode?.let {
                             Text(
-                                stringResource(R.string.pdf_error, it),
+                                stringResource(R.string.pdf_error, userFacingError(it)),
                                 color = MaterialTheme.colorScheme.error,
                             )
                         }
@@ -284,7 +299,7 @@ fun BatchRoute(
         state.errorCode?.let { error ->
             item {
                 Text(
-                    stringResource(R.string.pdf_error, error),
+                    stringResource(R.string.pdf_error, userFacingError(error)),
                     color = MaterialTheme.colorScheme.error,
                 )
             }

@@ -49,6 +49,7 @@ import com.google.mlkit.vision.documentscanner.GmsDocumentScanning
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
 import com.rameshta.formready.R
 import com.rameshta.formready.core.processing.OcrScript
+import com.rameshta.formready.ui.format.userFacingError
 
 @Composable
 fun ScannerRoute(
@@ -192,7 +193,7 @@ private fun ScannerScreen(
         }
         if (state.isBusy) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
         state.errorCode?.let { error ->
-            item { Text(error, color = MaterialTheme.colorScheme.error) }
+            item { Text(userFacingError(error), color = MaterialTheme.colorScheme.error) }
         }
         if (state.pages.isNotEmpty()) {
             item {

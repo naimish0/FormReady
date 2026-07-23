@@ -38,6 +38,8 @@ import com.rameshta.formready.core.model.OutputArtifact
 import com.rameshta.formready.core.model.ProcessingJob
 import com.rameshta.formready.core.model.Readiness
 import com.rameshta.formready.ui.component.EmptyStateScreen
+import com.rameshta.formready.ui.format.readableFileSize
+import com.rameshta.formready.ui.format.userFacingError
 import java.io.File
 import java.text.DateFormat
 import java.util.Date
@@ -174,14 +176,16 @@ private fun HistoryCard(
             Text(jobTypeLabel(job.type), style = MaterialTheme.typography.titleMedium)
             Text(stringResource(R.string.history_status, jobStatusLabel(job.status)))
             Text(DateFormat.getDateTimeInstance().format(Date(job.updatedAtEpochMillis)))
-            job.errorCode?.let { Text(stringResource(R.string.history_error, it)) }
+            job.errorCode?.let {
+                Text(stringResource(R.string.history_error, userFacingError(it)))
+            }
             artifact?.let {
                 Text(
                     stringResource(
                         R.string.history_output_details,
                         it.widthPx ?: 0,
                         it.heightPx ?: 0,
-                        it.byteCount,
+                        readableFileSize(it.byteCount),
                         readinessLabel(it.readiness),
                     ),
                 )

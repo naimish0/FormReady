@@ -41,6 +41,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rameshta.formready.R
 import com.rameshta.formready.core.model.JobStatus
+import com.rameshta.formready.core.model.ValidationOutcome
+import com.rameshta.formready.ui.format.readableFileSize
+import com.rameshta.formready.ui.format.readableValidationValue
+import com.rameshta.formready.ui.format.userFacingError
 
 @Composable
 fun PdfRoute(
@@ -119,7 +123,7 @@ fun PdfRoute(
                     Text(
                         stringResource(
                             R.string.pdf_summary,
-                            metadata.byteCount,
+                            readableFileSize(metadata.byteCount),
                             metadata.pageCount,
                         ),
                     )
@@ -327,7 +331,7 @@ fun PdfRoute(
                         JobStatus.QUEUED, JobStatus.RUNNING -> {
                             LinearProgressIndicator(Modifier.fillMaxWidth())
                             OutlinedButton(onClick = viewModel::cancel) {
-                                Text(stringResource(R.string.action_cancel))
+                                Text(stringResource(R.string.action_cancel_processing))
                             }
                         }
                         else -> if (state.result == null) {
@@ -343,7 +347,7 @@ fun PdfRoute(
         state.errorCode?.let { error ->
             item {
                 Text(
-                    stringResource(R.string.pdf_error, error),
+                    stringResource(R.string.pdf_error, userFacingError(error)),
                     color = MaterialTheme.colorScheme.error,
                 )
             }
@@ -354,11 +358,28 @@ fun PdfRoute(
                     Text(
                         stringResource(
                             R.string.pdf_result_summary,
-                            result.artifact.byteCount,
+                            readableFileSize(result.artifact.byteCount),
                         ),
                     )
-                    result.validations.forEach {
-                        Text("${it.outcome}: ${it.actual}")
+                    result.validations.forEach { validation ->
+                        val status = when (validation.outcome) {
+                            ValidationOutcome.PASS -> stringResource(R.string.validation_pass)
+                            ValidationOutcome.WARNING -> stringResource(R.string.validation_warning)
+                            ValidationOutcome.FAIL -> stringResource(R.string.validation_fail)
+                        }
+                        Text(
+                            stringResource(
+                                R.string.validation_required,
+                                status,
+                                readableValidationValue(validation.expected),
+                            ),
+                        )
+                        Text(
+                            stringResource(
+                                R.string.validation_current,
+                                readableValidationValue(validation.actual),
+                            ),
+                        )
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(

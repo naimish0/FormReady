@@ -35,9 +35,7 @@ class DataStoreSettingsRepository @Inject constructor(
                 dimensionUnit = preferences[Keys.DIMENSION_UNIT]
                     ?.let { runCatching { DefaultDimensionUnit.valueOf(it) }.getOrNull() }
                     ?: DefaultDimensionUnit.PIXELS,
-                byteUnit = preferences[Keys.BYTE_UNIT]
-                    ?.let { runCatching { DefaultByteUnit.valueOf(it) }.getOrNull() }
-                    ?: DefaultByteUnit.DECIMAL,
+                byteUnit = DefaultByteUnit.DECIMAL,
                 defaultImageFormat = preferences[Keys.IMAGE_FORMAT]
                     ?.let { runCatching { DefaultImageFormat.valueOf(it) }.getOrNull() }
                     ?: DefaultImageFormat.JPEG,
@@ -73,9 +71,7 @@ class DataStoreSettingsRepository @Inject constructor(
                 dimensionUnit = preferences[Keys.DIMENSION_UNIT]
                     ?.let { runCatching { DefaultDimensionUnit.valueOf(it) }.getOrNull() }
                     ?: DefaultDimensionUnit.PIXELS,
-                byteUnit = preferences[Keys.BYTE_UNIT]
-                    ?.let { runCatching { DefaultByteUnit.valueOf(it) }.getOrNull() }
-                    ?: DefaultByteUnit.DECIMAL,
+                byteUnit = DefaultByteUnit.DECIMAL,
                 defaultImageFormat = preferences[Keys.IMAGE_FORMAT]
                     ?.let { runCatching { DefaultImageFormat.valueOf(it) }.getOrNull() }
                     ?: DefaultImageFormat.JPEG,

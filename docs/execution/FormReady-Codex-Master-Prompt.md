@@ -364,7 +364,7 @@ Support:
 - optional minimum file size;
 - approximate target without a hard minimum;
 - decimal units (`1 KB = 1,000 bytes`, `1 MB = 1,000,000 bytes`);
-- binary units (`1 KiB = 1,024 bytes`, `1 MiB = 1,048,576 bytes`);
+- legacy binary units for internal compatibility only;
 - exact or maximum pixel width/height;
 - physical width/height in mm, cm, or inches;
 - DPI metadata;
@@ -377,7 +377,10 @@ Support:
 - configurable maximum-size safety margin;
 - hard rules versus advisory rules.
 
-Never hide the unit interpretation. For generic custom requirements, use decimal KB/MB by default, show the exact byte cap, and allow the user to switch. A verified named preset must encode the unit interpretation used by its official specification.
+Store and validate exact byte limits internally. Normal screens use familiar decimal KB/MB and
+never require users to understand raw bytes, KiB, or MiB. Legacy binary values remain readable for
+compatibility, and verified presets retain their exact stored limit. Put raw technical values only
+in explicitly exported diagnostics, never in normal workflow text.
 
 Physical conversion:
 

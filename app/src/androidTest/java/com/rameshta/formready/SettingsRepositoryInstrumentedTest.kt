@@ -16,7 +16,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class SettingsRepositoryInstrumentedTest {
     @Test
-    fun expandedDefaultsPersistAndRestoreAtomically() = runBlocking {
+    fun expandedDefaultsPersistAndLegacyBinaryUnitsBecomeStandardUnits() = runBlocking {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val repository = DataStoreSettingsRepository(context)
         try {
@@ -33,7 +33,7 @@ class SettingsRepositoryInstrumentedTest {
 
             val updated = repository.settings.first()
             assertEquals(DefaultDimensionUnit.INCHES, updated.dimensionUnit)
-            assertEquals(DefaultByteUnit.BINARY, updated.byteUnit)
+            assertEquals(DefaultByteUnit.DECIMAL, updated.byteUnit)
             assertEquals(DefaultImageFormat.PNG, updated.defaultImageFormat)
             assertEquals(true, updated.privacyModeEnabled)
             assertEquals(true, updated.reducedMotion)
