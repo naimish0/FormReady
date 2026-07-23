@@ -33,6 +33,9 @@ import com.rameshta.formready.core.model.IdPhotoOptions
 import com.rameshta.formready.core.model.MaskStroke
 import com.rameshta.formready.core.processing.PrivateWorkspaceCleaner
 import com.rameshta.formready.core.processing.PdfProcessingException
+import com.rameshta.formready.core.processing.PdfBoxPageOperationEngine
+import com.rameshta.formready.core.processing.PdfPageSelection
+import com.rameshta.formready.core.processing.PersonSegmentationEngine
 import com.rameshta.formready.core.processing.PlatformPdfEngine
 import com.rameshta.formready.core.processing.SignatureBitmapProcessor
 import java.io.File
@@ -54,7 +57,17 @@ class PhotoPipelineInstrumentedTest {
         check(mkdirs())
     }
     private val reader = AndroidImageMetadataReader()
-    private val engine = AndroidImageTransformEngine(reader, SignatureBitmapProcessor())
+    private val engine = AndroidImageTransformEngine(
+        reader,
+        SignatureBitmapProcessor(),
+        object : PersonSegmentationEngine {
+            override suspend fun replaceBackground(
+                source: Bitmap,
+                backgroundArgb: Int,
+                strokes: List<MaskStroke>,
+            ): Bitmap = source.copy(Bitmap.Config.ARGB_8888, true)
+        },
+    )
 
     @After
     fun tearDown() {
@@ -582,6 +595,29 @@ class PhotoPipelineInstrumentedTest {
         assertTrue(result.pages[0].isLandscape)
         assertFalse(result.pages[1].isLandscape)
         assertEquals(2, PlatformPdfEngine().inspect(destination).pageCount)
+    }
+
+    @Test
+    fun structurePreservingPdfOperationsMergeReorderRotateAndDelete() = runBlocking {
+        val first = writeSyntheticPdf("operations-first.pdf", listOf(300 to 500, 400 to 600))
+        val second = writeSyntheticPdf("operations-second.pdf", listOf(700 to 300))
+        val destination = File(root, "operations-output.pdf")
+
+        val result = PdfBoxPageOperationEngine(context, PlatformPdfEngine()).create(
+            sources = listOf(first, second),
+            pages = listOf(
+                PdfPageSelection(sourceIndex = 1, pageIndex = 0),
+                PdfPageSelection(sourceIndex = 0, pageIndex = 0, rotationQuarterTurns = 1),
+            ),
+            destination = destination,
+        )
+
+        assertEquals(2, result.metadata.pageCount)
+        assertEquals(700, result.metadata.pages[0].widthPoints)
+        assertEquals(300, result.metadata.pages[0].heightPoints)
+        assertEquals(500, result.metadata.pages[1].widthPoints)
+        assertEquals(300, result.metadata.pages[1].heightPoints)
+        assertTrue(result.validationResults.all { it.outcome.name == "PASS" })
     }
 
     private fun exactPlan(

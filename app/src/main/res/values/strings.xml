@@ -186,6 +186,14 @@
     <string name="pdf_input">PDF input</string>
     <string name="pdf_choose">Choose PDF</string>
     <string name="pdf_images_to_pdf">Images to PDF</string>
+    <string name="pdf_page_operations_choose">Merge, split, reorder, rotate, or delete pages</string>
+    <string name="pdf_page_operations">PDF page operations</string>
+    <string name="pdf_page_operations_notice">Supported PDFs keep text, vectors, images, links, and page annotations as PDF objects. Encrypted PDFs, forms, and digitally signed PDFs are blocked because editing could break protection or document semantics. Outlines and document-level metadata may change; always review the copy.</string>
+    <string name="pdf_operation_source_summary">%1$d source PDFs · %2$d output pages</string>
+    <string name="pdf_operation_page">Output %1$d · source %2$d, page %3$d · rotation %4$d°</string>
+    <string name="pdf_preview_action">Preview</string>
+    <string name="pdf_reset_pages">Reset pages</string>
+    <string name="pdf_create_edited_copy">Create PDF copy</string>
     <string name="pdf_inspection">Inspection</string>
     <string name="pdf_summary">%1$d bytes · %2$d pages</string>
     <string name="pdf_page_summary">Page %1$d: %2$d × %3$d pt · %4$s</string>

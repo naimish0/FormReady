@@ -52,6 +52,9 @@ on-device. FormReady does not recognize identities, compare faces, create face e
 persist landmarks or masks. Normalized erase/restore strokes are stored only when needed to run
 the local export job.
 
+Supported PDF merge, extraction, reorder, rotation and deletion use the local Apache-licensed
+PdfBox-Android engine. It has no network capability and does not upload document content.
+
 ## Diagnostics
 
 The optional local diagnostic export contains only the app version, Android API level, coarse

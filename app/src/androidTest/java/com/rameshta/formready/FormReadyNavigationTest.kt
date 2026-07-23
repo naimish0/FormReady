@@ -96,5 +96,7 @@ class FormReadyNavigationTest {
         composeRule.onNodeWithText(activity.getString(R.string.pdf_choose)).assertIsDisplayed()
         composeRule.onNodeWithText(activity.getString(R.string.pdf_images_to_pdf))
             .assertIsDisplayed()
+        composeRule.onNodeWithText(activity.getString(R.string.pdf_page_operations_choose))
+            .assertIsDisplayed()
     }
 }

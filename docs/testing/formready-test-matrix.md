@@ -96,3 +96,15 @@ Only deterministic synthetic fixtures may be used. Release evidence must record 
   load-segment alignment.
 - ID capture, face guidance, background edge quality, print scaling, accessibility, memory pressure,
   and API 24 execution remain open because the only detected device was offline.
+
+## Phase 8 reference run — 2026-07-23
+
+- Local JVM/lint/debug/release gates passed with 29 unit tests; Android-test Kotlin sources,
+  including the synthetic structure-operation test, compiled successfully.
+- Bundletool and universal-APK 16 KB alignment checks passed; the PDF engine adds no native library
+  or permission, and every packaged 64-bit native library remains `0x4000` ELF aligned.
+- The compiled synthetic Android test covers two-source merge, reorder, 90-degree rotation, page
+  deletion, reopened page count/dimensions, and structure validation. It was not executed because
+  no ADB device was connected.
+- Device execution remains required for text/vector/image/link/annotation fixtures, protected-file
+  rejection, cancellation, low storage, malformed PDFs, 100-page bounds, accessibility, and API 24.

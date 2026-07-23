@@ -15,6 +15,7 @@ import com.rameshta.formready.core.processing.PdfEngine
 import com.rameshta.formready.core.processing.PdfJobProcessor
 import com.rameshta.formready.core.processing.PdfPreparationService
 import com.rameshta.formready.core.processing.PlatformPdfEngine
+import com.rameshta.formready.core.processing.PdfBoxPageOperationEngine
 import com.rameshta.formready.core.processing.PhotoPreparationService
 import com.rameshta.formready.core.processing.PrivateInputStager
 import com.rameshta.formready.core.processing.PrivatePhotoOutputAccess
@@ -23,6 +24,7 @@ import com.rameshta.formready.core.processing.PrivatePdfPreparationService
 import com.rameshta.formready.core.processing.ProcessingScheduler
 import com.rameshta.formready.core.processing.SignatureJobProcessor
 import com.rameshta.formready.core.processing.SignatureProcessor
+import com.rameshta.formready.core.processing.StructurePreservingPdfEngine
 import com.rameshta.formready.core.processing.WorkManagerProcessingScheduler
 import dagger.Binds
 import dagger.Module
@@ -74,6 +76,12 @@ abstract class ProcessingBindingsModule {
     @Binds
     @Singleton
     abstract fun bindPdfEngine(implementation: PlatformPdfEngine): PdfEngine
+
+    @Binds
+    @Singleton
+    abstract fun bindStructurePreservingPdfEngine(
+        implementation: PdfBoxPageOperationEngine,
+    ): StructurePreservingPdfEngine
 
     @Binds
     @Singleton

@@ -29,6 +29,9 @@ Optional ID-photo guidance and background replacement also use bundled ML Kit fa
 person segmentation. FormReady does not identify people, compare faces, create embeddings, or
 persist face landmarks or segmentation masks.
 
+Supported PDF page operations use the local Apache-licensed PdfBox-Android engine. It has no
+network capability and does not upload document content.
+
 ## Security and retention
 
 Backup and cleartext traffic are disabled. Selected content is staged in private storage with
