@@ -47,6 +47,14 @@ class FormReadyNavigationTest {
         ).assertIsDisplayed()
         composeRule.onNodeWithText(activity.getString(R.string.presets_create)).assertIsDisplayed()
         composeRule.onNodeWithText(activity.getString(R.string.presets_import)).assertIsDisplayed()
+        composeRule.onNodeWithText(activity.getString(R.string.presets_create)).performClick()
+        composeRule.onNodeWithText(activity.getString(R.string.presets_maximum_size))
+            .assertIsDisplayed()
+        composeRule.onNodeWithText(activity.getString(R.string.presets_unit_kb))
+            .assertIsDisplayed()
+        composeRule.onNodeWithText(activity.getString(R.string.presets_unit_mb))
+            .assertIsDisplayed()
+        composeRule.onNodeWithText(activity.getString(R.string.action_cancel)).performClick()
         composeRule.onNode(hasScrollAction()).performScrollToNode(
             hasText(activity.getString(R.string.preset_builtin_photo_600x800)),
         )

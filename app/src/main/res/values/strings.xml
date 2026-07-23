@@ -50,7 +50,10 @@
     <string name="presets_duplicate_first">Duplicate a built-in preset before marking it as a favourite.</string>
     <string name="presets_type_revision">%1$s · revision %2$d</string>
     <string name="presets_name">Preset name</string>
-    <string name="presets_maximum_kb">Maximum size (KB)</string>
+    <string name="presets_maximum_size">Maximum file size</string>
+    <string name="presets_size_unit_help">Choose KB for small files or MB for larger files.</string>
+    <string name="presets_unit_kb">KB</string>
+    <string name="presets_unit_mb">MB</string>
     <string name="presets_width">Width (px)</string>
     <string name="presets_height">Height (px)</string>
     <string name="presets_maximum_pages">Maximum pages</string>

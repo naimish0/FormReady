@@ -17,11 +17,15 @@ specification { maximumBytes, widthPx?, heightPx?, maximumPages? },
 sourceUrl?, sourceCheckedAtEpochMillis?
 ```
 
+The preset editor accepts a whole number with a familiar KB or MB selector. It converts that
+value to exact bytes internally. Raw bytes and binary KiB/MiB labels are never required in the
+normal preset workflow.
+
 Invariants:
 
 - Imports receive a new local ID and never overwrite an existing preset.
 - Names must contain 1–80 characters.
-- File size must be positive and no larger than 200 MiB.
+- File size must be positive and remain within the internal safety limit.
 - Photo and signature dimensions must be 1–20,000 pixels per side.
 - PDF page limits must be 1–250.
 - Imports reject unsupported schema versions, unknown document types, oversized payloads,
