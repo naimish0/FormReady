@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rameshta.formready.R
 import com.rameshta.formready.core.data.repository.PresetRecord
+import com.rameshta.formready.core.data.repository.PresetSpecification
 import com.rameshta.formready.core.data.repository.PresetTargetType
 import org.json.JSONObject
 
@@ -49,7 +50,7 @@ fun PresetsScreen(viewModel: PresetsViewModel) {
         it?.let(viewModel::importFrom)
     }
     val exporter = rememberLauncherForActivityResult(
-        ActivityResultContracts.CreateDocument("application/json"),
+        ActivityResultContracts.CreateDocument(PRESET_MIME_TYPE),
     ) { it?.let(viewModel::exportTo) }
 
     LazyColumn(
@@ -66,6 +67,11 @@ fun PresetsScreen(viewModel: PresetsViewModel) {
         }
         item {
             Text(stringResource(R.string.presets_confirm_rules))
+            Text(
+                stringResource(R.string.presets_file_help),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             OutlinedTextField(
                 value = state.query,
                 onValueChange = viewModel::setQuery,
@@ -83,7 +89,18 @@ fun PresetsScreen(viewModel: PresetsViewModel) {
                 }) {
                     Text(stringResource(R.string.presets_create))
                 }
-                OutlinedButton(onClick = { importer.launch(arrayOf("application/json")) }) {
+                OutlinedButton(
+                    onClick = {
+                        importer.launch(
+                            arrayOf(
+                                PRESET_MIME_TYPE,
+                                "application/octet-stream",
+                                "application/json",
+                                "text/plain",
+                            ),
+                        )
+                    },
+                ) {
                     Text(stringResource(R.string.presets_import))
                 }
             }
@@ -91,7 +108,7 @@ fun PresetsScreen(viewModel: PresetsViewModel) {
         state.error?.let { error ->
             item {
                 Text(
-                    stringResource(R.string.presets_error, error),
+                    presetErrorMessage(error),
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.semantics {
                         liveRegion = LiveRegionMode.Assertive
@@ -113,7 +130,10 @@ fun PresetsScreen(viewModel: PresetsViewModel) {
                             preset.revision,
                         ),
                     )
-                    Text(preset.specificationJson)
+                    PresetSummary(
+                        type = preset.targetType,
+                        specification = viewModel.specification(preset),
+                    )
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                         verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -124,7 +144,7 @@ fun PresetsScreen(viewModel: PresetsViewModel) {
                         TextButton(
                             onClick = {
                                 viewModel.requestExport(preset)
-                                exporter.launch("${preset.name.take(40)}.json")
+                                exporter.launch(presetFileName(preset.name))
                             },
                         ) { Text(stringResource(R.string.presets_export)) }
                     }
@@ -170,6 +190,111 @@ fun PresetsScreen(viewModel: PresetsViewModel) {
             },
         )
     }
+    state.importCandidate?.let { candidate ->
+        ImportPresetPreviewDialog(
+            preset = candidate,
+            specification = viewModel.specification(candidate),
+            onDismiss = viewModel::dismissImport,
+            onConfirm = viewModel::confirmImport,
+        )
+    }
+}
+
+@Composable
+private fun ImportPresetPreviewDialog(
+    preset: PresetRecord,
+    specification: PresetSpecification,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.presets_import_review_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    stringResource(R.string.presets_import_review_help),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Text(preset.name, style = MaterialTheme.typography.titleMedium)
+                Text(presetTypeLabel(preset.targetType))
+                PresetSummary(preset.targetType, specification)
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(stringResource(R.string.presets_import_confirm))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.action_cancel))
+            }
+        },
+    )
+}
+
+@Composable
+private fun PresetSummary(
+    type: PresetTargetType,
+    specification: PresetSpecification,
+) {
+    val maximumSize = formattedFileSize(specification.maximumBytes)
+    Text(
+        when (type) {
+            PresetTargetType.PHOTO, PresetTargetType.SIGNATURE -> stringResource(
+                R.string.presets_summary_image,
+                specification.widthPx ?: 0,
+                specification.heightPx ?: 0,
+                maximumSize,
+            )
+            PresetTargetType.PDF -> stringResource(
+                R.string.presets_summary_pdf,
+                specification.maximumPages ?: 0,
+                maximumSize,
+            )
+        },
+    )
+}
+
+@Composable
+private fun formattedFileSize(bytes: Long): String =
+    if (bytes >= 1_000_000L && bytes % 1_000_000L == 0L) {
+        stringResource(R.string.presets_size_mb, bytes / 1_000_000L)
+    } else {
+        stringResource(R.string.presets_size_kb, (bytes + 999L) / 1_000L)
+    }
+
+@Composable
+private fun presetErrorMessage(error: PresetUiError): String = stringResource(
+    when (error) {
+        PresetUiError.FILE_TOO_LARGE -> R.string.presets_error_file_too_large
+        PresetUiError.DAMAGED_FILE -> R.string.presets_error_damaged_file
+        PresetUiError.UNSUPPORTED_VERSION -> R.string.presets_error_unsupported_version
+        PresetUiError.MISSING_NAME -> R.string.presets_error_missing_name
+        PresetUiError.NAME_TOO_LONG -> R.string.presets_error_name_too_long
+        PresetUiError.UNSUPPORTED_TYPE -> R.string.presets_error_unsupported_type
+        PresetUiError.INVALID_MAXIMUM_SIZE -> R.string.presets_error_invalid_size
+        PresetUiError.INVALID_DIMENSIONS -> R.string.presets_error_invalid_dimensions
+        PresetUiError.INVALID_PAGE_LIMIT -> R.string.presets_error_invalid_pages
+        PresetUiError.SOURCE_UNAVAILABLE -> R.string.presets_error_source_unavailable
+        PresetUiError.DESTINATION_UNAVAILABLE -> R.string.presets_error_destination_unavailable
+        PresetUiError.SAVE_FAILED -> R.string.presets_error_save_failed
+        PresetUiError.EXPORT_FAILED -> R.string.presets_error_export_failed
+        PresetUiError.DUPLICATE_BUILT_IN_FIRST -> R.string.presets_duplicate_first
+    },
+)
+
+private fun presetFileName(name: String): String {
+    val safeName = name
+        .map { character ->
+            if (character.isLetterOrDigit() || character in " ._-") character else '_'
+        }
+        .joinToString("")
+        .trim()
+        .take(40)
+        .ifBlank { "FormReady-preset" }
+    return "$safeName.formready"
 }
 
 @Composable
@@ -271,3 +396,5 @@ private fun presetTypeLabel(type: PresetTargetType): String = stringResource(
         PresetTargetType.PDF -> R.string.preset_type_pdf
     },
 )
+
+private const val PRESET_MIME_TYPE = "application/vnd.formready.preset+json"

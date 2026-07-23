@@ -42,9 +42,14 @@ class FormReadyNavigationTest {
             activity.getString(R.string.navigation_presets),
         ).performClick()
 
-        composeRule.onNodeWithText(activity.getString(R.string.presets_title)).assertIsDisplayed()
+        composeRule.onNode(
+            hasText(activity.getString(R.string.presets_title)) and isHeading(),
+        ).assertIsDisplayed()
         composeRule.onNodeWithText(activity.getString(R.string.presets_create)).assertIsDisplayed()
         composeRule.onNodeWithText(activity.getString(R.string.presets_import)).assertIsDisplayed()
+        composeRule.onNode(hasScrollAction()).performScrollToNode(
+            hasText(activity.getString(R.string.preset_builtin_photo_600x800)),
+        )
         composeRule.onNodeWithText(
             activity.getString(R.string.preset_builtin_photo_600x800),
         ).assertIsDisplayed()
@@ -103,6 +108,9 @@ class FormReadyNavigationTest {
     @Test
     fun batchCapabilityOpensFunctionalBatchFlow() {
         val activity = composeRule.activity
+        composeRule.onNode(hasScrollAction()).performScrollToNode(
+            hasText(activity.getString(R.string.capability_batch_title)),
+        )
         composeRule.onNodeWithText(
             activity.getString(R.string.capability_batch_title),
         ).performClick()

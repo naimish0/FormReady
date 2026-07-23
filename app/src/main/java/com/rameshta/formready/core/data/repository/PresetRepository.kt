@@ -27,6 +27,29 @@ data class PresetRecord(
     val isFavourite: Boolean = false,
 )
 
+data class PresetSpecification(
+    val maximumBytes: Long,
+    val widthPx: Int? = null,
+    val heightPx: Int? = null,
+    val maximumPages: Int? = null,
+)
+
+enum class PresetImportIssue {
+    FILE_TOO_LARGE,
+    DAMAGED_FILE,
+    UNSUPPORTED_VERSION,
+    MISSING_NAME,
+    NAME_TOO_LONG,
+    UNSUPPORTED_TYPE,
+    INVALID_MAXIMUM_SIZE,
+    INVALID_DIMENSIONS,
+    INVALID_PAGE_LIMIT,
+}
+
+class PresetImportException(
+    val issue: PresetImportIssue,
+) : IllegalArgumentException(issue.name)
+
 interface PresetRepository {
     fun observeAll(): Flow<List<PresetRecord>>
 
@@ -38,7 +61,9 @@ interface PresetRepository {
 
     fun export(record: PresetRecord): String
 
-    fun parseImport(json: String): PresetRecord
+    fun parseImport(contents: String): PresetRecord
+
+    fun specification(record: PresetRecord): PresetSpecification
 }
 
 class RoomPresetRepository @Inject constructor(
@@ -49,7 +74,7 @@ class RoomPresetRepository @Inject constructor(
 
     override suspend fun save(record: PresetRecord) {
         require(record.name.isNotBlank() && record.name.length <= 80)
-        validateSpecification(record.specificationJson, record.targetType)
+        parseSpecification(JSONObject(record.specificationJson), record.targetType)
         val entity = record.toEntity()
         if (dao.get(record.id) == null) {
             dao.insert(entity)
@@ -67,6 +92,7 @@ class RoomPresetRepository @Inject constructor(
     }
 
     override fun export(record: PresetRecord): String = JSONObject()
+        .put("fileType", "FormReadyPreset")
         .put("schemaVersion", record.schemaVersion)
         .put("revision", record.revision)
         .put("id", record.id)
@@ -77,15 +103,23 @@ class RoomPresetRepository @Inject constructor(
         .put("sourceCheckedAtEpochMillis", record.sourceCheckedAtEpochMillis ?: JSONObject.NULL)
         .toString(2)
 
-    override fun parseImport(json: String): PresetRecord {
-        require(json.length <= MAX_IMPORT_CHARS)
-        val root = JSONObject(json)
-        require(root.getInt("schemaVersion") == 1)
-        val targetType = PresetTargetType.valueOf(root.getString("targetType"))
-        val specification = root.getJSONObject("specification").toString()
-        validateSpecification(specification, targetType)
-        val name = root.getString("name").trim()
-        require(name.isNotBlank() && name.length <= 80)
+    override fun parseImport(contents: String): PresetRecord {
+        if (contents.length > MAX_IMPORT_CHARS) fail(PresetImportIssue.FILE_TOO_LARGE)
+        val root = runCatching { JSONObject(contents) }
+            .getOrElse { fail(PresetImportIssue.DAMAGED_FILE) }
+        if (root.optInt("schemaVersion", -1) != 1) {
+            fail(PresetImportIssue.UNSUPPORTED_VERSION)
+        }
+        val targetType = root.optString("targetType")
+            .let { stored -> PresetTargetType.entries.firstOrNull { it.name == stored } }
+            ?: fail(PresetImportIssue.UNSUPPORTED_TYPE)
+        val specificationObject = root.optJSONObject("specification")
+            ?: fail(PresetImportIssue.DAMAGED_FILE)
+        parseSpecification(specificationObject, targetType)
+        val specification = specificationObject.toString()
+        val name = root.optString("name").trim()
+        if (name.isBlank()) fail(PresetImportIssue.MISSING_NAME)
+        if (name.length > 80) fail(PresetImportIssue.NAME_TOO_LONG)
         return PresetRecord(
             id = UUID.randomUUID().toString(),
             revision = root.optInt("revision", 1).coerceAtLeast(1),
@@ -99,19 +133,52 @@ class RoomPresetRepository @Inject constructor(
         )
     }
 
-    private fun validateSpecification(json: String, targetType: PresetTargetType) {
-        require(json.length <= MAX_SPECIFICATION_CHARS)
-        val value = JSONObject(json)
-        val maximumBytes = value.optLong("maximumBytes", 0L)
-        require(maximumBytes in 1..MAXIMUM_PRESET_BYTES)
-        require(value.has("widthPx") == value.has("heightPx"))
-        if (value.has("widthPx")) require(value.getInt("widthPx") in 1..20_000)
-        if (value.has("heightPx")) require(value.getInt("heightPx") in 1..20_000)
-        if (value.has("maximumPages")) {
-            require(targetType == PresetTargetType.PDF)
-            require(value.getInt("maximumPages") in 1..250)
+    override fun specification(record: PresetRecord): PresetSpecification =
+        parseSpecification(JSONObject(record.specificationJson), record.targetType)
+
+    private fun parseSpecification(
+        value: JSONObject,
+        targetType: PresetTargetType,
+    ): PresetSpecification {
+        if (value.toString().length > MAX_SPECIFICATION_CHARS) {
+            fail(PresetImportIssue.FILE_TOO_LARGE)
+        }
+        val maximumBytes = value.numberLong("maximumBytes")
+            ?: fail(PresetImportIssue.INVALID_MAXIMUM_SIZE)
+        if (maximumBytes !in 1..MAXIMUM_PRESET_BYTES) {
+            fail(PresetImportIssue.INVALID_MAXIMUM_SIZE)
+        }
+        return when (targetType) {
+            PresetTargetType.PHOTO, PresetTargetType.SIGNATURE -> {
+                val width = value.numberInt("widthPx")
+                    ?: fail(PresetImportIssue.INVALID_DIMENSIONS)
+                val height = value.numberInt("heightPx")
+                    ?: fail(PresetImportIssue.INVALID_DIMENSIONS)
+                if (width !in 1..20_000 || height !in 1..20_000) {
+                    fail(PresetImportIssue.INVALID_DIMENSIONS)
+                }
+                PresetSpecification(
+                    maximumBytes = maximumBytes,
+                    widthPx = width,
+                    heightPx = height,
+                )
+            }
+            PresetTargetType.PDF -> {
+                val pages = value.numberInt("maximumPages")
+                    ?: fail(PresetImportIssue.INVALID_PAGE_LIMIT)
+                if (pages !in 1..250) fail(PresetImportIssue.INVALID_PAGE_LIMIT)
+                PresetSpecification(maximumBytes = maximumBytes, maximumPages = pages)
+            }
         }
     }
+
+    private fun JSONObject.numberLong(key: String): Long? =
+        (opt(key) as? Number)?.toLong()
+
+    private fun JSONObject.numberInt(key: String): Int? =
+        (opt(key) as? Number)?.toLong()?.takeIf { it in Int.MIN_VALUE..Int.MAX_VALUE }?.toInt()
+
+    private fun fail(issue: PresetImportIssue): Nothing = throw PresetImportException(issue)
 
     private fun PresetEntity.toModel() = PresetRecord(
         id = id,

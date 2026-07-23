@@ -6,7 +6,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rameshta.formready.R
 import com.rameshta.formready.core.data.repository.PresetRecord
+import com.rameshta.formready.core.data.repository.PresetImportException
+import com.rameshta.formready.core.data.repository.PresetImportIssue
 import com.rameshta.formready.core.data.repository.PresetRepository
+import com.rameshta.formready.core.data.repository.PresetSpecification
 import com.rameshta.formready.core.data.repository.PresetTargetType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -24,9 +27,27 @@ import org.json.JSONObject
 data class PresetsUiState(
     val presets: List<PresetRecord> = emptyList(),
     val query: String = "",
-    val error: String? = null,
+    val error: PresetUiError? = null,
     val exportCandidate: PresetRecord? = null,
+    val importCandidate: PresetRecord? = null,
 )
+
+enum class PresetUiError {
+    FILE_TOO_LARGE,
+    DAMAGED_FILE,
+    UNSUPPORTED_VERSION,
+    MISSING_NAME,
+    NAME_TOO_LONG,
+    UNSUPPORTED_TYPE,
+    INVALID_MAXIMUM_SIZE,
+    INVALID_DIMENSIONS,
+    INVALID_PAGE_LIMIT,
+    SOURCE_UNAVAILABLE,
+    DESTINATION_UNAVAILABLE,
+    SAVE_FAILED,
+    EXPORT_FAILED,
+    DUPLICATE_BUILT_IN_FIRST,
+}
 
 @HiltViewModel
 class PresetsViewModel @Inject constructor(
@@ -98,6 +119,9 @@ class PresetsViewModel @Inject constructor(
         controls.update { it.copy(query = value.take(80)) }
     }
 
+    fun specification(preset: PresetRecord): PresetSpecification =
+        repository.specification(preset)
+
     fun save(
         existing: PresetRecord?,
         name: String,
@@ -127,8 +151,8 @@ class PresetsViewModel @Inject constructor(
                         isFavourite = existing?.isFavourite ?: false,
                     ),
                 )
-            }.onFailure { error ->
-                controls.update { it.copy(error = error.message ?: "PRESET_INVALID") }
+            }.onFailure {
+                controls.update { state -> state.copy(error = PresetUiError.SAVE_FAILED) }
             }
         }
     }
@@ -150,7 +174,7 @@ class PresetsViewModel @Inject constructor(
 
     fun toggleFavourite(preset: PresetRecord) {
         if (!preset.isCustom) {
-            controls.update { it.copy(error = "DUPLICATE_BUILT_IN_TO_FAVOURITE") }
+            controls.update { it.copy(error = PresetUiError.DUPLICATE_BUILT_IN_FIRST) }
             return
         }
         viewModelScope.launch {
@@ -164,9 +188,10 @@ class PresetsViewModel @Inject constructor(
     }
 
     fun importFrom(uri: Uri) {
+        controls.update { it.copy(error = null, importCandidate = null) }
         viewModelScope.launch {
             runCatching {
-                val json = context.contentResolver.openInputStream(uri)
+                val contents = context.contentResolver.openInputStream(uri)
                     ?.bufferedReader()
                     ?.use { reader ->
                         val buffer = CharArray(4_096)
@@ -174,21 +199,49 @@ class PresetsViewModel @Inject constructor(
                         while (true) {
                             val count = reader.read(buffer)
                             if (count < 0) break
-                            require(content.length + count <= MAX_IMPORT_CHARS)
+                            if (content.length + count > MAX_IMPORT_CHARS) {
+                                throw PresetImportException(PresetImportIssue.FILE_TOO_LARGE)
+                            }
                             content.append(buffer, 0, count)
                         }
                         content.toString()
                     }
-                    ?: error("PRESET_SOURCE_UNAVAILABLE")
-                repository.save(repository.parseImport(json))
+                    ?: throw PresetSourceUnavailableException
+                repository.parseImport(contents)
+            }.onSuccess { candidate ->
+                controls.update { it.copy(importCandidate = candidate, error = null) }
             }.onFailure { error ->
-                controls.update { it.copy(error = error.message ?: "PRESET_IMPORT_INVALID") }
+                controls.update { it.copy(error = error.toUiError(), importCandidate = null) }
             }
         }
     }
 
+    fun confirmImport() {
+        val candidate = controls.value.importCandidate ?: return
+        viewModelScope.launch {
+            runCatching { repository.save(candidate) }
+                .onSuccess {
+                    controls.update {
+                        it.copy(importCandidate = null, error = null)
+                    }
+                }
+                .onFailure {
+                    controls.update {
+                        it.copy(
+                            importCandidate = null,
+                            error = PresetUiError.SAVE_FAILED,
+                        )
+                    }
+                }
+        }
+    }
+
+    fun dismissImport() {
+        controls.update { it.copy(importCandidate = null) }
+    }
+
     fun requestExport(preset: PresetRecord) {
-        controls.update { it.copy(exportCandidate = preset) }
+        controls.update { it.copy(exportCandidate = preset, error = null) }
     }
 
     fun exportTo(uri: Uri) {
@@ -198,9 +251,17 @@ class PresetsViewModel @Inject constructor(
                 context.contentResolver.openOutputStream(uri, "wt")
                     ?.bufferedWriter()
                     ?.use { it.write(repository.export(preset)) }
-                    ?: error("PRESET_DESTINATION_UNAVAILABLE")
+                    ?: throw PresetDestinationUnavailableException
             }.onFailure { error ->
-                controls.update { it.copy(error = error.message ?: "PRESET_EXPORT_FAILED") }
+                controls.update {
+                    it.copy(
+                        error = if (error === PresetDestinationUnavailableException) {
+                            PresetUiError.DESTINATION_UNAVAILABLE
+                        } else {
+                            PresetUiError.EXPORT_FAILED
+                        },
+                    )
+                }
             }
             controls.update { it.copy(exportCandidate = null) }
         }
@@ -213,4 +274,24 @@ class PresetsViewModel @Inject constructor(
     private companion object {
         const val MAX_IMPORT_CHARS = 64 * 1024
     }
+
+    private fun Throwable.toUiError(): PresetUiError = when (this) {
+        PresetSourceUnavailableException -> PresetUiError.SOURCE_UNAVAILABLE
+        is PresetImportException -> when (issue) {
+            PresetImportIssue.FILE_TOO_LARGE -> PresetUiError.FILE_TOO_LARGE
+            PresetImportIssue.DAMAGED_FILE -> PresetUiError.DAMAGED_FILE
+            PresetImportIssue.UNSUPPORTED_VERSION -> PresetUiError.UNSUPPORTED_VERSION
+            PresetImportIssue.MISSING_NAME -> PresetUiError.MISSING_NAME
+            PresetImportIssue.NAME_TOO_LONG -> PresetUiError.NAME_TOO_LONG
+            PresetImportIssue.UNSUPPORTED_TYPE -> PresetUiError.UNSUPPORTED_TYPE
+            PresetImportIssue.INVALID_MAXIMUM_SIZE -> PresetUiError.INVALID_MAXIMUM_SIZE
+            PresetImportIssue.INVALID_DIMENSIONS -> PresetUiError.INVALID_DIMENSIONS
+            PresetImportIssue.INVALID_PAGE_LIMIT -> PresetUiError.INVALID_PAGE_LIMIT
+        }
+        else -> PresetUiError.DAMAGED_FILE
+    }
 }
+
+private data object PresetSourceUnavailableException : IllegalStateException()
+
+private data object PresetDestinationUnavailableException : IllegalStateException()

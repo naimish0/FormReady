@@ -3,6 +3,9 @@ package com.rameshta.formready
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.rameshta.formready.core.data.local.PresetDao
 import com.rameshta.formready.core.data.local.PresetEntity
+import com.rameshta.formready.core.data.repository.PresetImportException
+import com.rameshta.formready.core.data.repository.PresetImportIssue
+import com.rameshta.formready.core.data.repository.PresetRecord
 import com.rameshta.formready.core.data.repository.PresetTargetType
 import com.rameshta.formready.core.data.repository.RoomPresetRepository
 import kotlinx.coroutines.flow.Flow
@@ -52,6 +55,61 @@ class PresetRepositoryInstrumentedTest {
             }
             """.trimIndent(),
         )
+    }
+
+    @Test
+    fun exportCanBeImportedAsFriendlyPresetFile() {
+        val original = PresetRecord(
+            id = "local-preset",
+            name = "Application photo",
+            targetType = PresetTargetType.PHOTO,
+            specificationJson =
+                """{"maximumBytes":200000,"widthPx":600,"heightPx":800}""",
+        )
+
+        val exported = repository.export(original)
+        val imported = repository.parseImport(exported)
+
+        check(exported.contains("\"fileType\": \"FormReadyPreset\""))
+        assertEquals(original.name, imported.name)
+        assertEquals(original.targetType, imported.targetType)
+        assertEquals(600, repository.specification(imported).widthPx)
+        check(imported.id != original.id)
+    }
+
+    @Test
+    fun importReportsUnsupportedVersionPrecisely() {
+        val error = runCatching {
+            repository.parseImport(
+                """
+                {
+                  "schemaVersion": 99,
+                  "name": "Future preset",
+                  "targetType": "PDF",
+                  "specification": {"maximumBytes": 1000000, "maximumPages": 10}
+                }
+                """.trimIndent(),
+            )
+        }.exceptionOrNull() as PresetImportException
+
+        assertEquals(PresetImportIssue.UNSUPPORTED_VERSION, error.issue)
+    }
+
+    @Test
+    fun importReportsMissingNamePrecisely() {
+        val error = runCatching {
+            repository.parseImport(
+                """
+                {
+                  "schemaVersion": 1,
+                  "targetType": "PDF",
+                  "specification": {"maximumBytes": 1000000, "maximumPages": 10}
+                }
+                """.trimIndent(),
+            )
+        }.exceptionOrNull() as PresetImportException
+
+        assertEquals(PresetImportIssue.MISSING_NAME, error.issue)
     }
 
     private object NoOpPresetDao : PresetDao {
