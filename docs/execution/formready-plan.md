@@ -71,16 +71,28 @@ Use the Phase 1 branch and PR pattern for every numbered phase:
     flattened reopen/render validation, unreachable targets, ordered images-to-PDF, cleanup, plan
     policy bounds/round-trip, and PDF navigation. Merged manifests and runtime dependencies are
     unchanged from Phase 2.
-- [ ] Phase 4 — Presets, history, settings, accessibility, and localization
+- [x] Phase 4 — Presets, history, settings, accessibility, and localization
+  - Generic and validated custom preset create/edit/duplicate/favourite/import/export flows use
+    Room schema v3 and bounded JSON input without named-organization compliance claims.
+  - Local history supports search/filter/favourite/repeat/open/share/delete/clear and explicit
+    owned-output deletion. Repeat restores requirements only and always requires a new source.
+  - Expanded DataStore settings, opt-in privacy-screen protection, safe diagnostics, temporary-file
+    cleanup, destructive-action confirmations, responsive action groups, per-app English locale
+    configuration, and translator notes are implemented.
+  - Verification on 2026-07-23: unit tests, `lintDebug`, `assembleDebug`, and minified/R8
+    `bundleRelease` passed. Twenty-one non-UI connected tests passed on a Samsung SM-S928B running
+    Android 16; five Compose navigation tests need rerun because the device was locked/dozing and
+    then disconnected. Hindi remains blocked on native-speaker translation/review and is not
+    exposed in the locale picker.
 - [ ] Phase 5 — Monetization decision, launch QA, and release assets
 
 ## Next-run handoff
 
-Continue FormReady from this file and the shared Phase 3 checkpoint. Implement only Phase 4
-presets, history, settings, accessibility, and localization without re-auditing completed
-photo/signature/PDF processors. Reuse their validated requirement, export, history,
-private-staging, durable-work, and cancellation foundations. Preserve single-module package
-boundaries and run targeted tests plus the repository done-criteria gates.
+Continue FormReady from this file and the shared Phase 4 checkpoint. Implement only Phase 5
+monetization decisions, launch QA, policy/release documentation, and release assets without
+reworking completed processing or supporting flows. Do not add ad/consent production SDKs or
+credentials unless approved configuration exists. Preserve single-module package boundaries and
+run the complete repository done-criteria gates.
 
 ## 2026-07-23 single-module conversion checkpoint
 

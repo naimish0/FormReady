@@ -453,6 +453,36 @@ class SignatureViewModel @Inject constructor(
         mutableState.update { it.copy(errorCode = "NO_COMPATIBLE_APP") }
     }
 
+    fun reuseRequirements(serializedPlan: String) {
+        val plan = runCatching { PhotoPlanCodec.decode(serializedPlan) }.getOrNull() ?: return
+        val options = plan.signatureOptions ?: return
+        val output = plan.output
+        mutableState.update {
+            it.copy(
+                widthText = output.widthPx?.toString() ?: it.widthText,
+                heightText = output.heightPx?.toString() ?: it.heightText,
+                maximumSizeText = output.maximumBytes?.div(1_000L)?.toString()
+                    ?: it.maximumSizeText,
+                dpiText = output.dpi?.toString() ?: it.dpiText,
+                outputFormat = output.format,
+                grayscale = options.grayscale,
+                contrastPercent = options.contrastPercent,
+                threshold = options.threshold,
+                cleanPaper = options.cleanPaperBackground,
+                removeSpeckles = options.removeSpeckles,
+                autoCrop = options.autoCrop,
+                safeMarginPercent = options.safeMarginPercent,
+                inkArgb = options.inkArgb,
+                transparentBackground = options.transparentBackground,
+                metadata = null,
+                originalPreview = null,
+                processedPreview = null,
+                jobStatus = null,
+                result = null,
+            )
+        }
+    }
+
     fun prepareAnother() {
         savedStateHandle.remove<String>(KEY_DRAFT_ID)
         originalPreviewBitmap = null

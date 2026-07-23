@@ -34,6 +34,7 @@ class RoomJobRepository @Inject constructor(
                 createdAtEpochMillis = now,
                 updatedAtEpochMillis = now,
                 errorCode = null,
+                isFavourite = false,
             ),
         )
     }
@@ -66,6 +67,18 @@ class RoomJobRepository @Inject constructor(
         return dao.observeRecent(limit).map { jobs -> jobs.map { it.toModel() } }
     }
 
+    override suspend fun setFavourite(jobId: UUID, favourite: Boolean) {
+        check(dao.setFavourite(jobId.toString(), favourite) == 1)
+    }
+
+    override suspend fun delete(jobId: UUID) {
+        dao.delete(jobId.toString())
+    }
+
+    override suspend fun clear() {
+        dao.clearHistory()
+    }
+
     private fun ProcessingJobEntity.toModel() = ProcessingJob(
         id = UUID.fromString(id),
         projectId = projectId?.let(UUID::fromString),
@@ -76,6 +89,7 @@ class RoomJobRepository @Inject constructor(
         errorCode = errorCode,
         serializedPlan = processingPlanJson,
         stagedInputRelativePath = stagedInputRelativePath,
+        isFavourite = isFavourite,
     )
 }
 

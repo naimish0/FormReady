@@ -28,6 +28,26 @@ class FormReadyNavigationTest {
         composeRule.onNodeWithText(homeTitle).assertIsDisplayed()
         composeRule.onNodeWithText(settingsNavigation).performClick()
         composeRule.onNode(hasText(settingsTitle) and isHeading()).assertIsDisplayed()
+        composeRule.onNode(hasScrollAction()).performScrollToNode(
+            hasText(activity.getString(R.string.settings_clear_temporary)),
+        )
+        composeRule.onNodeWithText(activity.getString(R.string.settings_clear_temporary))
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun presetsSupportCreateImportAndGenericRules() {
+        val activity = composeRule.activity
+        composeRule.onNodeWithText(
+            activity.getString(R.string.navigation_presets),
+        ).performClick()
+
+        composeRule.onNodeWithText(activity.getString(R.string.presets_title)).assertIsDisplayed()
+        composeRule.onNodeWithText(activity.getString(R.string.presets_create)).assertIsDisplayed()
+        composeRule.onNodeWithText(activity.getString(R.string.presets_import)).assertIsDisplayed()
+        composeRule.onNodeWithText(
+            activity.getString(R.string.preset_builtin_photo_600x800),
+        ).assertIsDisplayed()
     }
 
     @Test

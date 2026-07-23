@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -42,6 +43,18 @@ interface ProcessingJobDao {
 
     @Query("SELECT * FROM processing_jobs ORDER BY updatedAtEpochMillis DESC LIMIT :limit")
     fun observeRecent(limit: Int): Flow<List<ProcessingJobEntity>>
+
+    @Query("UPDATE processing_jobs SET isFavourite = :favourite WHERE id = :id")
+    suspend fun setFavourite(id: String, favourite: Boolean): Int
+
+    @Query("DELETE FROM processing_jobs WHERE id = :id")
+    suspend fun delete(id: String): Int
+
+    @Query(
+        "DELETE FROM processing_jobs " +
+            "WHERE status IN ('SUCCEEDED', 'FAILED', 'CANCELLED')",
+    )
+    suspend fun clearHistory()
 }
 
 @Dao
@@ -51,6 +64,18 @@ interface PresetDao {
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(preset: PresetEntity)
+
+    @Query("SELECT * FROM presets WHERE id = :id")
+    suspend fun get(id: String): PresetEntity?
+
+    @Update(onConflict = OnConflictStrategy.ABORT)
+    suspend fun update(preset: PresetEntity): Int
+
+    @Query("UPDATE presets SET isFavourite = :favourite WHERE id = :id")
+    suspend fun setFavourite(id: String, favourite: Boolean): Int
+
+    @Query("DELETE FROM presets WHERE id = :id AND isCustom = 1")
+    suspend fun deleteCustom(id: String): Int
 }
 
 @Dao

@@ -5,13 +5,15 @@ import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.rameshta.formready.core.data.local.FormReadyDatabase
+import com.rameshta.formready.core.data.local.ProcessingJobEntity
+import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class FormReadyDatabaseMigrationTest {
     @Test
-    fun migrateFrom1To2PreservesSchemaAndAddsValidatedOutputFields() {
+    fun migrateFrom1To3PreservesSchemaAndAddsPhase2AndPhase4Fields() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         context.deleteDatabase(TEST_DATABASE)
         val path = context.getDatabasePath(TEST_DATABASE)
@@ -110,16 +112,46 @@ class FormReadyDatabaseMigrationTest {
         }
 
         val database = Room.databaseBuilder(context, FormReadyDatabase::class.java, TEST_DATABASE)
-            .addMigrations(FormReadyDatabase.MIGRATION_1_2)
+            .addMigrations(FormReadyDatabase.MIGRATION_1_2, FormReadyDatabase.MIGRATION_2_3)
             .allowMainThreadQueries()
             .build()
         try {
             database.openHelper.writableDatabase.query(
-                "SELECT readiness, validationJson FROM output_artifacts WHERE id = 'artifact'",
+                """
+                SELECT output_artifacts.readiness, output_artifacts.validationJson,
+                    processing_jobs.isFavourite
+                FROM output_artifacts
+                JOIN processing_jobs ON processing_jobs.id = output_artifacts.jobId
+                WHERE output_artifacts.id = 'artifact'
+                """.trimIndent(),
             ).use { cursor ->
                 check(cursor.moveToFirst())
                 check(cursor.getString(0) == "NOT_READY")
                 check(cursor.getString(1) == "[]")
+                check(cursor.getInt(2) == 0)
+            }
+            runBlocking {
+                database.processingJobDao().insert(
+                    ProcessingJobEntity(
+                        id = "active-job",
+                        projectId = null,
+                        type = "PHOTO",
+                        status = "RUNNING",
+                        processingPlanJson = "{}",
+                        stagedInputRelativePath = null,
+                        createdAtEpochMillis = 2,
+                        updatedAtEpochMillis = 2,
+                        errorCode = null,
+                    ),
+                )
+                database.processingJobDao().clearHistory()
+            }
+            database.openHelper.writableDatabase.query(
+                "SELECT id FROM processing_jobs ORDER BY id",
+            ).use { cursor ->
+                check(cursor.count == 1)
+                check(cursor.moveToFirst())
+                check(cursor.getString(0) == "active-job")
             }
         } finally {
             database.close()

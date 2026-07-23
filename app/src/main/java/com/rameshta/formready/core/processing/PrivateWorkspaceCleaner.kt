@@ -35,6 +35,17 @@ class PrivateWorkspaceCleaner @Inject constructor(
             ?.forEach(File::deleteRecursively)
     }
 
+    /** Removes only private, reproducible working files; exported outputs are never touched. */
+    fun clearTemporaryFiles() {
+        File(context.noBackupFilesDir, STAGED_INPUT_DIRECTORY).deleteRecursively()
+        File(context.noBackupFilesDir, IMAGES_TO_PDF_DIRECTORY).deleteRecursively()
+        File(context.cacheDir, SIGNATURE_CAPTURE_DIRECTORY).deleteRecursively()
+        File(context.filesDir, PrivatePhotoOutputAccess.OUTPUT_DIRECTORY)
+            .listFiles()
+            ?.filter { it.isFile && it.name.endsWith(PARTIAL_SUFFIX) }
+            ?.forEach(File::delete)
+    }
+
     companion object {
         const val RETENTION_MILLIS = 24L * 60L * 60L * 1_000L
         private const val STAGED_INPUT_DIRECTORY = "staged-inputs"
