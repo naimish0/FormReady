@@ -4,7 +4,7 @@
 |---|---|---|
 | Domain | Job transitions, validation aggregation, units, physical-to-pixel rounding, generic presets, bounded preset-import validation, crop geometry, bounded/non-monotonic JPEG solver, signature option bounds, PDF flattening policy bounds, and processing-plan round-trip tests | DAO concurrency and destructive-migration rejection |
 | Data | Room schemas exported; 1-to-3 migration preserves records and adds validation/readiness/favourite defaults; expanded settings persistence/reset | Concurrent history/preset mutation stress |
-| Processing | Bounded private staging; JPEG/PNG/WebP inspection; corrupt, zero-byte and animated rejection; all EXIF orientations; exact/maximum geometry; native DPI reopen; target-unreachable cleanup; expired/explicit temporary cleanup; completed-output preservation; synthetic 48 MP processing; signature cleanup/crop/recolour/preview; mixed-page PDF inspection, lazy preview, flattened reopen/render validation, unreachable PDF targets, and images-to-PDF | Low-storage provider fixture and API 24 execution |
+| Processing | Bounded private staging; JPEG/PNG/WebP inspection; corrupt, zero-byte and animated rejection; all EXIF orientations; exact/maximum geometry; native DPI reopen; target-unreachable cleanup; expired/explicit temporary cleanup; completed-output preservation; synthetic 48 MP processing; signature cleanup/crop/recolour/preview; mixed-page PDF inspection, lazy preview, flattened reopen/render validation, unreachable PDF targets, images-to-PDF, and bounded batch-plan contracts | Low-storage provider fixture and API 24 execution |
 | ID photo | Normalized mask bounds, durable plan round-trip, exact inherited photo validation, and reopened print-sheet generation | Synthetic one/no/multiple-face, segmentation/manual-refinement visual goldens and physical print measurement |
 | UI | Physical-device Home/Settings, Photo requirement/editor, Signature import/camera/drawing, and honest PDF mode/navigation tests; responsive Phase 4 action groups | Phase 4 UI rerun on an awake device; 200% font, TalkBack, RTL, reviewed Hindi, rotation |
 | Privacy | Manifest audit; backup/cleartext disabled; metadata removal test; private partial cleanup; diagnostic export allowlist test; opt-in recents screenshot protection | Airplane-mode run |
@@ -108,3 +108,13 @@ Only deterministic synthetic fixtures may be used. Release evidence must record 
   no ADB device was connected.
 - Device execution remains required for text/vector/image/link/annotation fixtures, protected-file
   rejection, cancellation, low storage, malformed PDFs, 100-page bounds, accessibility, and API 24.
+
+## Phase 9 reference run — 2026-07-23
+
+- Local JVM tests cover batch requirement bounds and crop/fit plan construction; Android-test
+  sources include navigation into the functional batch flow.
+- Full lint/debug/minified-release, artifact, manifest and binary results are recorded in
+  `docs/release/phase-9-validation.md`.
+- Device execution remains required for 10-item ordering, failed-item continuation, cancellation,
+  process recreation, Photo Picker/provider loss, 200 MiB rejection, low storage, ZIP contents,
+  accessibility and API 24.

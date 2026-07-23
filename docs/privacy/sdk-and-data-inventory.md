@@ -1,6 +1,6 @@
 # SDK and data inventory — launch build 1.0.0
 
-This inventory is derived from the Phase 5 release runtime classpath and merged release manifest.
+This inventory was reconciled with the Phase 9 release runtime classpath and merged release manifest.
 Re-run it for every release candidate.
 
 | Component | Data handled | Purpose | Transmission | Retention/control | Play Data Safety treatment |

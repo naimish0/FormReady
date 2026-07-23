@@ -1,6 +1,6 @@
 # Dependency and licence inventory
 
-Direct production dependencies through Phase 8:
+Direct production dependencies through Phase 9:
 
 | Dependency | Version | Purpose | Licence/data behaviour |
 |---|---:|---|---|
@@ -31,7 +31,7 @@ JUnit, AndroidX Test, Espresso, Compose test, WorkManager testing, and coroutine
 test-only and Apache 2.0 except JUnit 4 (EPL 1.0).
 
 AndroidX Graphics Path and DataStore contribute small native libraries for the four packaged ABIs.
-Phase 7 universal-APK checks verified 16 KB ZIP alignment; every 64-bit native library uses
+Phase 9 universal-APK checks verified 16 KB ZIP alignment; every 64-bit native library uses
 `0x4000` ELF load-segment alignment. No app-authored
 native library, ad/consent SDK, billing SDK, camera SDK, image loader, or general
 network client is shipped. ML Kit adds bundled OCR, face-detection, and segmentation native/model

@@ -99,4 +99,17 @@ class FormReadyNavigationTest {
         composeRule.onNodeWithText(activity.getString(R.string.pdf_page_operations_choose))
             .assertIsDisplayed()
     }
+
+    @Test
+    fun batchCapabilityOpensFunctionalBatchFlow() {
+        val activity = composeRule.activity
+        composeRule.onNodeWithText(
+            activity.getString(R.string.capability_batch_title),
+        ).performClick()
+
+        composeRule.onNodeWithText(activity.getString(R.string.batch_title)).assertIsDisplayed()
+        composeRule.onNodeWithText(activity.getString(R.string.batch_choose)).assertIsDisplayed()
+        composeRule.onNodeWithText(activity.getString(R.string.batch_privacy_and_limit))
+            .assertIsDisplayed()
+    }
 }

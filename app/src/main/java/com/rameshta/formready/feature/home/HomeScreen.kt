@@ -28,6 +28,7 @@ fun HomeScreen(
     onPreparePdf: () -> Unit,
     onScanDocument: () -> Unit,
     onPrepareIdPhoto: () -> Unit,
+    onPrepareBatch: () -> Unit,
 ) {
     val capabilities = listOf(
         R.string.capability_photo_title to R.string.capability_photo_description,
@@ -35,6 +36,7 @@ fun HomeScreen(
         R.string.capability_pdf_title to R.string.capability_pdf_description,
         R.string.capability_scanner_title to R.string.capability_scanner_description,
         R.string.capability_id_photo_title to R.string.capability_id_photo_description,
+        R.string.capability_batch_title to R.string.capability_batch_description,
     )
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -86,6 +88,7 @@ fun HomeScreen(
                     R.string.capability_pdf_title -> onPreparePdf
                     R.string.capability_scanner_title -> onScanDocument
                     R.string.capability_id_photo_title -> onPrepareIdPhoto
+                    R.string.capability_batch_title -> onPrepareBatch
                     else -> null
                 },
             )

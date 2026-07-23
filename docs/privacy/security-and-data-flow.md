@@ -91,6 +91,18 @@ file names, paths, URIs, thumbnails, OCR, signatures, face data, and user-entere
 - Inputs are limited to 10 PDFs, 100 total pages, and 200 MiB. They remain in bounded no-backup
   staging; partial and failed outputs are removed.
 
+## Phase 9 batch controls
+
+- The free photo batch is limited to 10 selected images and 200 MiB of combined staged input. Each
+  source is staged and inspected sequentially through the existing bounded no-backup input path.
+- Every item remains an independent UUID-backed job and is processed strictly in sequence. A failed
+  item is recorded without blocking later items; cancelling the batch stops the unique chain and
+  cleans the active processor's partial files.
+- ZIP export is user-initiated through Storage Access Framework and contains only reopened,
+  validated successful outputs with generated names. Original provider names, paths and URIs are
+  not written into the archive.
+- Batch processing adds no permission, SDK, network transfer, analytics or remote service.
+
 ## Threats tracked
 
 Malformed/image/PDF bombs, decompression expansion, path traversal, lost grants, non-seekable providers, storage exhaustion, cancellation races, duplicate work, process death, malicious incoming intents, metadata leakage, and accidental logging require explicit tests in the implementing phase.

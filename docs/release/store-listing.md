@@ -44,7 +44,9 @@ selected.
 
 ### Reuse requirements privately
 
-Save custom presets, repeat previous requirements with a new source, and manage local history.
+Prepare a bounded set of photos sequentially with one exact requirement set, then save validated
+successes to a ZIP you choose. Save custom presets, repeat previous requirements with a new source,
+and manage local history.
 Imported presets are validated before they are stored. Organization-specific claims are not
 included unless backed by an official current source.
 
@@ -63,6 +65,7 @@ Support: naimish.app@gmail.com
 - Exact dimensions, DPI and byte limits
 - Private photo and signature preparation
 - PDF inspection, supported page operations and compatibility export
+- Bounded sequential photo batches and explicit ZIP export
 - Reopened output validation
 - Reusable custom presets and local history
 - No account, backend, analytics or ads

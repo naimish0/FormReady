@@ -55,6 +55,10 @@ the local export job.
 Supported PDF merge, extraction, reorder, rotation and deletion use the local Apache-licensed
 PdfBox-Android engine. It has no network capability and does not upload document content.
 
+Photo batches use the same local photo processor one item at a time. A batch is bounded, and a ZIP
+is written only when you choose a system document destination. The archive contains validated
+outputs with generated names rather than the original provider names.
+
 ## Diagnostics
 
 The optional local diagnostic export contains only the app version, Android API level, coarse

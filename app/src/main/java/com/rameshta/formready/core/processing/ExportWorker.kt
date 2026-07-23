@@ -35,7 +35,7 @@ class ExportWorker @AssistedInject constructor(
                 JobStatus.FAILED,
                 ERROR_PROCESSOR_UNAVAILABLE,
             )
-            return Result.failure()
+            return Result.success()
         }
 
         return try {
@@ -46,7 +46,9 @@ class ExportWorker @AssistedInject constructor(
                 }
                 is ProcessorResult.Failure -> {
                     jobs.transition(jobId, JobStatus.RUNNING, JobStatus.FAILED, result.errorCode)
-                    Result.failure()
+                    // The durable job row is the product result. Completing the WorkManager node
+                    // lets a strictly ordered batch continue after an individual item fails.
+                    Result.success()
                 }
             }
         } catch (cancellation: CancellationException) {
@@ -54,7 +56,7 @@ class ExportWorker @AssistedInject constructor(
             throw cancellation
         } catch (_: Exception) {
             jobs.transition(jobId, JobStatus.RUNNING, JobStatus.FAILED, ERROR_PROCESSING_FAILED)
-            Result.failure()
+            Result.success()
         }
     }
 
