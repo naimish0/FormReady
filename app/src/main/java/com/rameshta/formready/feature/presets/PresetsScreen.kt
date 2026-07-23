@@ -311,10 +311,16 @@ private fun CreatePresetDialog(
     var type by remember(existing) {
         mutableStateOf(existing?.targetType ?: PresetTargetType.PHOTO)
     }
-    var maximumKb by remember(existing) {
-        mutableStateOf(
-            existingSpec?.optLong("maximumBytes")?.div(1_000L)?.toString() ?: "200",
-        )
+    val initialMaximumBytes = existingSpec
+        ?.optLong("maximumBytes")
+        ?.takeIf { it > 0L }
+        ?: 200_000L
+    var sizeUnit by remember(existing) {
+        mutableStateOf(preferredSizeUnit(initialMaximumBytes))
+    }
+    var maximumSize by remember(existing) {
+        val initialUnit = preferredSizeUnit(initialMaximumBytes)
+        mutableStateOf((initialMaximumBytes / initialUnit.bytesPerUnit).toString())
     }
     var width by remember(existing) {
         mutableStateOf(existingSpec?.optInt("widthPx")?.takeIf { it > 0 }?.toString() ?: "600")
@@ -351,9 +357,40 @@ private fun CreatePresetDialog(
                         )
                     }
                 }
-                OutlinedTextField(maximumKb, { maximumKb = it.filter(Char::isDigit) }, label = {
-                    Text(stringResource(R.string.presets_maximum_kb))
-                })
+                OutlinedTextField(
+                    value = maximumSize,
+                    onValueChange = { maximumSize = it.filter(Char::isDigit).take(9) },
+                    label = { Text(stringResource(R.string.presets_maximum_size)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                )
+                Text(
+                    stringResource(R.string.presets_size_unit_help),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    PresetSizeUnit.entries.forEach { unit ->
+                        FilterChip(
+                            selected = sizeUnit == unit,
+                            onClick = { sizeUnit = unit },
+                            label = {
+                                Text(
+                                    stringResource(
+                                        if (unit == PresetSizeUnit.KB) {
+                                            R.string.presets_unit_kb
+                                        } else {
+                                            R.string.presets_unit_mb
+                                        },
+                                    ),
+                                )
+                            },
+                        )
+                    }
+                }
                 if (type != PresetTargetType.PDF) {
                     OutlinedTextField(width, { width = it.filter(Char::isDigit) }, label = {
                         Text(stringResource(R.string.presets_width))
@@ -374,7 +411,7 @@ private fun CreatePresetDialog(
                     onCreate(
                         name,
                         type,
-                        maximumKb.toLongOrNull()?.times(1_000L) ?: 0L,
+                        maximumSize.toPresetBytes(sizeUnit),
                         width.toIntOrNull().takeIf { type != PresetTargetType.PDF },
                         height.toIntOrNull().takeIf { type != PresetTargetType.PDF },
                         pages.toIntOrNull().takeIf { type == PresetTargetType.PDF },
@@ -386,6 +423,25 @@ private fun CreatePresetDialog(
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
         },
     )
+}
+
+private enum class PresetSizeUnit(val bytesPerUnit: Long) {
+    KB(1_000L),
+    MB(1_000_000L),
+}
+
+private fun preferredSizeUnit(bytes: Long): PresetSizeUnit =
+    if (bytes >= PresetSizeUnit.MB.bytesPerUnit &&
+        bytes % PresetSizeUnit.MB.bytesPerUnit == 0L
+    ) {
+        PresetSizeUnit.MB
+    } else {
+        PresetSizeUnit.KB
+    }
+
+private fun String.toPresetBytes(unit: PresetSizeUnit): Long {
+    val value = toLongOrNull() ?: return 0L
+    return runCatching { Math.multiplyExact(value, unit.bytesPerUnit) }.getOrDefault(0L)
 }
 
 @Composable
