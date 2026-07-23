@@ -3,9 +3,11 @@ package com.rameshta.formready.core.processing
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.ColorSpace
 import android.graphics.Matrix
 import android.graphics.Paint
+import android.graphics.PorterDuff
 import android.graphics.Rect
 import android.graphics.RectF
 import androidx.exifinterface.media.ExifInterface
@@ -28,6 +30,7 @@ import kotlin.math.roundToInt
 
 class AndroidImageTransformEngine @Inject constructor(
     private val metadataReader: ImageMetadataReader,
+    private val signatureBitmapProcessor: SignatureBitmapProcessor,
 ) : ImageTransformEngine {
     override suspend fun prepare(
         input: File,
@@ -41,6 +44,7 @@ class AndroidImageTransformEngine @Inject constructor(
         }
         var decoded: Bitmap? = null
         var oriented: Bitmap? = null
+        var cleaned: Bitmap? = null
         var rotated: Bitmap? = null
         var transformed: Bitmap? = null
         try {
@@ -49,13 +53,19 @@ class AndroidImageTransformEngine @Inject constructor(
             if (oriented !== decoded) decoded.recycle()
             decoded = null
 
+            cleaned = plan.signatureOptions?.let { options ->
+                signatureBitmapProcessor.process(oriented, options)
+            } ?: oriented
+            if (cleaned !== oriented) oriented.recycle()
+            oriented = null
+
             val degrees = plan.transforms
                 .filterIsInstance<NormalizedTransform.Rotate>()
                 .sumOf { it.degreesClockwise.toDouble() }
                 .toFloat()
-            rotated = rotate(oriented, degrees)
-            if (rotated !== oriented) oriented.recycle()
-            oriented = null
+            rotated = rotate(cleaned, degrees)
+            if (rotated !== cleaned) cleaned.recycle()
+            cleaned = null
 
             val upscalingFactor = max(
                 targetWidth.toFloat() / rotated.width,
@@ -81,6 +91,7 @@ class AndroidImageTransformEngine @Inject constructor(
         } finally {
             decoded?.takeUnless { it.isRecycled }?.recycle()
             oriented?.takeUnless { it.isRecycled }?.recycle()
+            cleaned?.takeUnless { it.isRecycled }?.recycle()
             rotated?.takeUnless { it.isRecycled }?.recycle()
             transformed?.takeUnless { it.isRecycled }?.recycle()
         }
@@ -157,17 +168,25 @@ class AndroidImageTransformEngine @Inject constructor(
         val fitPad = transforms.filterIsInstance<NormalizedTransform.FitPad>().lastOrNull()
         if (outputFormat == OutputFormat.JPEG) {
             canvas.drawColor(backgroundArgb)
+        } else {
+            canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
         }
         if (fitPad != null) {
             canvas.drawColor(fitPad.backgroundArgb)
-            val scale = minOf(width.toFloat() / source.width, height.toFloat() / source.height)
+            val availableWidth = width * (1f - fitPad.paddingFraction * 2f)
+            val availableHeight = height * (1f - fitPad.paddingFraction * 2f)
+            val scale = minOf(availableWidth / source.width, availableHeight / source.height)
             val drawnWidth = source.width * scale
             val drawnHeight = source.height * scale
+            val remainingX = width - drawnWidth
+            val remainingY = height - drawnHeight
+            val centreX = width / 2f + fitPad.horizontalOffset * remainingX / 2f
+            val centreY = height / 2f + fitPad.verticalOffset * remainingY / 2f
             val destination = RectF(
-                (width - drawnWidth) / 2f,
-                (height - drawnHeight) / 2f,
-                (width + drawnWidth) / 2f,
-                (height + drawnHeight) / 2f,
+                centreX - drawnWidth / 2f,
+                centreY - drawnHeight / 2f,
+                centreX + drawnWidth / 2f,
+                centreY + drawnHeight / 2f,
             )
             canvas.drawBitmap(source, null, destination, paint)
         } else {

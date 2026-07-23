@@ -19,11 +19,18 @@ class PrivateWorkspaceCleaner @Inject constructor(
                 ?.filter { file -> nowEpochMillis - file.lastModified() >= RETENTION_MILLIS }
                 ?.forEach(File::delete)
         }
+        File(context.cacheDir, SIGNATURE_CAPTURE_DIRECTORY)
+            .listFiles()
+            ?.asSequence()
+            ?.filter(File::isFile)
+            ?.filter { file -> nowEpochMillis - file.lastModified() >= RETENTION_MILLIS }
+            ?.forEach(File::delete)
     }
 
     companion object {
         const val RETENTION_MILLIS = 24L * 60L * 60L * 1_000L
         private const val STAGED_INPUT_DIRECTORY = "staged-inputs"
         private const val PARTIAL_SUFFIX = ".part"
+        private const val SIGNATURE_CAPTURE_DIRECTORY = "signature-captures"
     }
 }

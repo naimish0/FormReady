@@ -22,7 +22,10 @@ import androidx.compose.ui.unit.dp
 import com.rameshta.formready.R
 
 @Composable
-fun HomeScreen(onPreparePhoto: () -> Unit) {
+fun HomeScreen(
+    onPreparePhoto: () -> Unit,
+    onPrepareSignature: () -> Unit,
+) {
     val capabilities = listOf(
         R.string.capability_photo_title to R.string.capability_photo_description,
         R.string.capability_signature_title to R.string.capability_signature_description,
@@ -72,10 +75,10 @@ fun HomeScreen(onPreparePhoto: () -> Unit) {
             CapabilityCard(
                 titleRes = capability.first,
                 descriptionRes = capability.second,
-                onClick = if (capability.first == R.string.capability_photo_title) {
-                    onPreparePhoto
-                } else {
-                    null
+                onClick = when (capability.first) {
+                    R.string.capability_photo_title -> onPreparePhoto
+                    R.string.capability_signature_title -> onPrepareSignature
+                    else -> null
                 },
             )
         }

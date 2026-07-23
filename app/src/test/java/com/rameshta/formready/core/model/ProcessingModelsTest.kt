@@ -3,6 +3,7 @@ package com.rameshta.formready.core.model
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class ProcessingModelsTest {
@@ -47,5 +48,21 @@ class ProcessingModelsTest {
         )
 
         assertEquals(Readiness.READY_WITH_WARNINGS, result.readiness())
+    }
+
+    @Test
+    fun signatureOptionsRejectContradictoryCropAndUnsafeControls() {
+        assertThrows(IllegalArgumentException::class.java) {
+            SignatureOptions(cropLeft = 0.8f, cropRight = 0.2f)
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            SignatureOptions(threshold = 255)
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            NormalizedTransform.FitPad(
+                backgroundArgb = 0,
+                paddingFraction = 0.5f,
+            )
+        }
     }
 }

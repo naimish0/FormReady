@@ -5,6 +5,7 @@ import androidx.work.WorkManager
 import com.rameshta.formready.core.processing.InputStager
 import com.rameshta.formready.core.processing.AndroidImageMetadataReader
 import com.rameshta.formready.core.processing.AndroidImageTransformEngine
+import com.rameshta.formready.core.processing.AndroidSignatureProcessor
 import com.rameshta.formready.core.processing.ImageMetadataReader
 import com.rameshta.formready.core.processing.ImageTransformEngine
 import com.rameshta.formready.core.processing.JobProcessor
@@ -15,6 +16,8 @@ import com.rameshta.formready.core.processing.PrivateInputStager
 import com.rameshta.formready.core.processing.PrivatePhotoOutputAccess
 import com.rameshta.formready.core.processing.PrivatePhotoPreparationService
 import com.rameshta.formready.core.processing.ProcessingScheduler
+import com.rameshta.formready.core.processing.SignatureJobProcessor
+import com.rameshta.formready.core.processing.SignatureProcessor
 import com.rameshta.formready.core.processing.WorkManagerProcessingScheduler
 import dagger.Binds
 import dagger.Module
@@ -47,6 +50,12 @@ abstract class ProcessingBindingsModule {
 
     @Binds
     @Singleton
+    abstract fun bindSignatureProcessor(
+        implementation: AndroidSignatureProcessor,
+    ): SignatureProcessor
+
+    @Binds
+    @Singleton
     abstract fun bindPhotoPreparationService(
         implementation: PrivatePhotoPreparationService,
     ): PhotoPreparationService
@@ -69,6 +78,10 @@ abstract class ProcessingBindingsModule {
     @Binds
     @IntoSet
     abstract fun bindPhotoJobProcessor(implementation: PhotoJobProcessor): JobProcessor
+
+    @Binds
+    @IntoSet
+    abstract fun bindSignatureJobProcessor(implementation: SignatureJobProcessor): JobProcessor
 }
 
 @Module

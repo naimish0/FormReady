@@ -47,4 +47,21 @@ class FormReadyNavigationTest {
         )
         composeRule.onNodeWithText(activity.getString(R.string.photo_choose)).assertIsDisplayed()
     }
+
+    @Test
+    fun signatureFlowOffersGalleryCameraAndDrawingWithoutStoragePermission() {
+        val activity = composeRule.activity
+        composeRule.onNodeWithText(
+            activity.getString(R.string.capability_signature_title),
+        ).performClick()
+
+        composeRule.onNodeWithText(activity.getString(R.string.signature_title))
+            .assertIsDisplayed()
+        composeRule.onNodeWithText(activity.getString(R.string.signature_gallery))
+            .assertIsDisplayed()
+        composeRule.onNodeWithText(activity.getString(R.string.signature_camera))
+            .assertIsDisplayed()
+        composeRule.onNodeWithText(activity.getString(R.string.signature_draw))
+            .assertIsDisplayed()
+    }
 }

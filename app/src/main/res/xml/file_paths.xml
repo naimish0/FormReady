@@ -3,4 +3,7 @@
     <files-path
         name="validated_photo_outputs"
         path="outputs/" />
+    <cache-path
+        name="temporary_signature_capture"
+        path="signature-captures/" />
 </paths>

@@ -40,6 +40,7 @@ class PhotoProcessingException(
         CORRUPT_INPUT,
         UNSUPPORTED_FORMAT,
         ANIMATED_IMAGE_UNSUPPORTED,
+        EMPTY_SIGNATURE,
         IMAGE_DIMENSIONS_UNSAFE,
         DECODE_FAILED,
         TARGET_UNREACHABLE,
@@ -90,7 +91,9 @@ data class PreparedPhoto(
 
 interface TargetSizeEncoder
 
-interface SignatureProcessor
+interface SignatureProcessor {
+    suspend fun prepare(input: File, destination: File, plan: ProcessingPlan): PreparedPhoto
+}
 
 interface PdfEngine
 

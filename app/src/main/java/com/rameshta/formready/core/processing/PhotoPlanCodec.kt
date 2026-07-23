@@ -7,6 +7,7 @@ import com.rameshta.formready.core.model.PhysicalUnit
 import com.rameshta.formready.core.model.OutputFormat
 import com.rameshta.formready.core.model.OutputSpecification
 import com.rameshta.formready.core.model.ProcessingPlan
+import com.rameshta.formready.core.model.SignatureOptions
 import com.rameshta.formready.core.model.ValidationOutcome
 import com.rameshta.formready.core.model.ValidationRuleResult
 import org.json.JSONArray
@@ -54,10 +55,32 @@ object PhotoPlanCodec {
                             is NormalizedTransform.FitPad -> JSONObject()
                                 .put("type", "fitPad")
                                 .put("backgroundArgb", transform.backgroundArgb)
+                                .put("paddingFraction", transform.paddingFraction.toDouble())
+                                .put("horizontalOffset", transform.horizontalOffset.toDouble())
+                                .put("verticalOffset", transform.verticalOffset.toDouble())
                         },
                     )
                 }
             },
+        )
+        .put(
+            "signatureOptions",
+            plan.signatureOptions?.let { options ->
+                JSONObject()
+                    .put("grayscale", options.grayscale)
+                    .put("contrastPercent", options.contrastPercent)
+                    .put("threshold", options.threshold)
+                    .put("cleanPaperBackground", options.cleanPaperBackground)
+                    .put("removeSpeckles", options.removeSpeckles)
+                    .put("autoCrop", options.autoCrop)
+                    .put("safeMarginPercent", options.safeMarginPercent)
+                    .put("inkArgb", options.inkArgb)
+                    .put("transparentBackground", options.transparentBackground)
+                    .put("cropLeft", options.cropLeft.toDouble())
+                    .put("cropTop", options.cropTop.toDouble())
+                    .put("cropRight", options.cropRight.toDouble())
+                    .put("cropBottom", options.cropBottom.toDouble())
+            } ?: JSONObject.NULL,
         )
         .put("hardRuleIds", JSONArray(plan.hardRuleIds.toList()))
         .put("advisoryRuleIds", JSONArray(plan.advisoryRuleIds.toList()))
@@ -83,7 +106,19 @@ object PhotoPlanCodec {
                             bottom = transform.getDouble("bottom").toFloat(),
                         )
                         "fitPad" -> NormalizedTransform.FitPad(
-                            transform.getInt("backgroundArgb"),
+                            backgroundArgb = transform.getInt("backgroundArgb"),
+                            paddingFraction = transform.optDouble(
+                                "paddingFraction",
+                                0.0,
+                            ).toFloat(),
+                            horizontalOffset = transform.optDouble(
+                                "horizontalOffset",
+                                0.0,
+                            ).toFloat(),
+                            verticalOffset = transform.optDouble(
+                                "verticalOffset",
+                                0.0,
+                            ).toFloat(),
                         )
                         else -> error("Unknown photo transform")
                     },
@@ -114,6 +149,26 @@ object PhotoPlanCodec {
             ),
             hardRuleIds = root.getJSONArray("hardRuleIds").stringSet(),
             advisoryRuleIds = root.getJSONArray("advisoryRuleIds").stringSet(),
+            signatureOptions = root.optJSONObject("signatureOptions")?.let { options ->
+                SignatureOptions(
+                    grayscale = options.optBoolean("grayscale", true),
+                    contrastPercent = options.optInt("contrastPercent", 120),
+                    threshold = options.optInt("threshold", 190),
+                    cleanPaperBackground = options.optBoolean("cleanPaperBackground", true),
+                    removeSpeckles = options.optBoolean("removeSpeckles", true),
+                    autoCrop = options.optBoolean("autoCrop", true),
+                    safeMarginPercent = options.optInt("safeMarginPercent", 6),
+                    inkArgb = options.optInt("inkArgb", 0xFF111111.toInt()),
+                    transparentBackground = options.optBoolean(
+                        "transparentBackground",
+                        false,
+                    ),
+                    cropLeft = options.optDouble("cropLeft", 0.0).toFloat(),
+                    cropTop = options.optDouble("cropTop", 0.0).toFloat(),
+                    cropRight = options.optDouble("cropRight", 1.0).toFloat(),
+                    cropBottom = options.optDouble("cropBottom", 1.0).toFloat(),
+                )
+            },
         )
     }
 

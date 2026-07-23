@@ -1,7 +1,10 @@
 package com.rameshta.formready
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
 import androidx.exifinterface.media.ExifInterface
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -13,6 +16,7 @@ import com.rameshta.formready.core.model.OutputFormat
 import com.rameshta.formready.core.model.OutputSpecification
 import com.rameshta.formready.core.model.ProcessingPlan
 import com.rameshta.formready.core.model.Readiness
+import com.rameshta.formready.core.model.SignatureOptions
 import com.rameshta.formready.core.model.readiness
 import com.rameshta.formready.core.processing.AndroidImageMetadataReader
 import com.rameshta.formready.core.processing.AndroidImageTransformEngine
@@ -21,6 +25,7 @@ import com.rameshta.formready.core.processing.PhotoProcessingException
 import com.rameshta.formready.core.processing.PngDpiMetadata
 import com.rameshta.formready.core.processing.PhotoPlanCodec
 import com.rameshta.formready.core.processing.PrivateWorkspaceCleaner
+import com.rameshta.formready.core.processing.SignatureBitmapProcessor
 import java.io.File
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
@@ -39,7 +44,7 @@ class PhotoPipelineInstrumentedTest {
         check(mkdirs())
     }
     private val reader = AndroidImageMetadataReader()
-    private val engine = AndroidImageTransformEngine(reader)
+    private val engine = AndroidImageTransformEngine(reader, SignatureBitmapProcessor())
 
     @After
     fun tearDown() {
@@ -183,7 +188,12 @@ class PhotoPipelineInstrumentedTest {
             jobId = UUID.randomUUID(),
             transforms = listOf(
                 NormalizedTransform.Rotate(91.5f),
-                NormalizedTransform.FitPad(Color.WHITE),
+                NormalizedTransform.FitPad(
+                    backgroundArgb = Color.TRANSPARENT,
+                    paddingFraction = 0.1f,
+                    horizontalOffset = -0.2f,
+                    verticalOffset = 0.3f,
+                ),
             ),
             output = OutputSpecification(
                 format = OutputFormat.PNG,
@@ -202,6 +212,16 @@ class PhotoPipelineInstrumentedTest {
             ),
             hardRuleIds = setOf("photo.format", "photo.dpi"),
             advisoryRuleIds = setOf("photo.upscaling"),
+            signatureOptions = SignatureOptions(
+                threshold = 175,
+                safeMarginPercent = 9,
+                inkArgb = Color.BLUE,
+                transparentBackground = true,
+                cropLeft = 0.1f,
+                cropTop = 0.2f,
+                cropRight = 0.9f,
+                cropBottom = 0.8f,
+            ),
         )
 
         val restored = PhotoPlanCodec.decode(PhotoPlanCodec.encode(original))
@@ -299,6 +319,130 @@ class PhotoPipelineInstrumentedTest {
         assertEquals(160, prepared.heightPx)
         assertTrue(prepared.byteCount <= 200_000)
         assertTrue(System.currentTimeMillis() - started < 30_000)
+    }
+
+    @Test
+    fun signatureCleanupAutoCropsRecoloursAndKeepsTransparentPng() = runBlocking {
+        val bitmap = Bitmap.createBitmap(600, 200, Bitmap.Config.ARGB_8888)
+        Canvas(bitmap).apply {
+            drawColor(Color.WHITE)
+            val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.rgb(25, 25, 25)
+                strokeWidth = 10f
+                style = Paint.Style.STROKE
+            }
+            drawLine(140f, 100f, 280f, 65f, paint)
+            drawLine(280f, 65f, 440f, 115f, paint)
+            drawPoint(20f, 20f, Paint().apply { color = Color.BLACK })
+        }
+        val source = bitmap.write("signature-paper.png", Bitmap.CompressFormat.PNG)
+        val destination = File(root, "signature-clean.png")
+        val plan = ProcessingPlan(
+            jobId = UUID.randomUUID(),
+            transforms = listOf(
+                NormalizedTransform.FitPad(
+                    backgroundArgb = Color.TRANSPARENT,
+                    paddingFraction = 0.08f,
+                ),
+            ),
+            output = OutputSpecification(
+                format = OutputFormat.PNG,
+                widthPx = 300,
+                heightPx = 100,
+                maximumBytes = 100_000,
+                dpi = 300,
+                backgroundArgb = Color.TRANSPARENT,
+            ),
+            hardRuleIds = emptySet(),
+            advisoryRuleIds = emptySet(),
+            signatureOptions = SignatureOptions(
+                threshold = 180,
+                inkArgb = Color.rgb(10, 61, 145),
+                transparentBackground = true,
+            ),
+        )
+
+        val prepared = engine.prepare(source, destination, plan)
+        val reopened = BitmapFactory.decodeFile(destination.absolutePath)
+        assertEquals(300, prepared.widthPx)
+        assertEquals(100, prepared.heightPx)
+        assertEquals(0, Color.alpha(reopened.getPixel(0, 0)))
+        assertTrue(
+            (0 until reopened.width step 3).any { x ->
+                (0 until reopened.height step 3).any { y ->
+                    Color.blue(reopened.getPixel(x, y)) > Color.red(reopened.getPixel(x, y)) &&
+                        Color.alpha(reopened.getPixel(x, y)) > 0
+                }
+            },
+        )
+        reopened.recycle()
+    }
+
+    @Test
+    fun signaturePreviewUsesExactFrameRotationPaddingAndPosition() {
+        val source = Bitmap.createBitmap(180, 120, Bitmap.Config.ARGB_8888).apply {
+            eraseColor(Color.WHITE)
+        }
+        Canvas(source).drawRect(
+            70f,
+            20f,
+            110f,
+            100f,
+            Paint().apply { color = Color.BLACK },
+        )
+
+        val preview = SignatureBitmapProcessor().processPreview(
+            source = source,
+            options = SignatureOptions(safeMarginPercent = 0),
+            rotationDegrees = 90f,
+            requestedWidth = 240,
+            requestedHeight = 120,
+            paddingFraction = 0.1f,
+            horizontalOffset = 1f,
+            verticalOffset = 0f,
+            backgroundArgb = Color.WHITE,
+        )
+
+        assertEquals(240, preview.width)
+        assertEquals(120, preview.height)
+        val inkPixels = buildList {
+            for (y in 0 until preview.height) {
+                for (x in 0 until preview.width) {
+                    if (Color.red(preview.getPixel(x, y)) < 80) add(x)
+                }
+            }
+        }
+        assertTrue(inkPixels.isNotEmpty())
+        assertTrue(inkPixels.average() > preview.width / 2f)
+        assertEquals(Color.WHITE, preview.getPixel(0, 0))
+        preview.recycle()
+        source.recycle()
+    }
+
+    @Test
+    fun blankSignatureIsRejectedWithTypedFailure() = runBlocking {
+        val source = Bitmap.createBitmap(300, 100, Bitmap.Config.ARGB_8888).apply {
+            eraseColor(Color.WHITE)
+        }.write("blank-signature.png", Bitmap.CompressFormat.PNG)
+        val destination = File(root, "blank-output.png")
+        val plan = ProcessingPlan(
+            jobId = UUID.randomUUID(),
+            transforms = listOf(NormalizedTransform.FitPad(Color.WHITE)),
+            output = OutputSpecification(
+                format = OutputFormat.PNG,
+                widthPx = 300,
+                heightPx = 100,
+                maximumBytes = 100_000,
+            ),
+            hardRuleIds = emptySet(),
+            advisoryRuleIds = emptySet(),
+            signatureOptions = SignatureOptions(),
+        )
+
+        assertPhotoError(PhotoProcessingException.Code.EMPTY_SIGNATURE) {
+            engine.prepare(source, destination, plan)
+        }
+        assertFalse(destination.exists())
     }
 
     private fun exactPlan(
