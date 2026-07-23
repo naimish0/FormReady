@@ -5,6 +5,11 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+val proProductId = providers.gradleProperty("FORMREADY_PRO_PRODUCT_ID").orElse("").get()
+require(proProductId.isEmpty() || proProductId.matches(Regex("[a-z0-9][a-z0-9_.]*"))) {
+    "FORMREADY_PRO_PRODUCT_ID must be an exact valid Play Console product ID"
+}
+
 android {
     namespace = "com.rameshta.formready"
     compileSdk = 36
@@ -17,6 +22,11 @@ android {
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField(
+            "String",
+            "PRO_PRODUCT_ID",
+            "\"${proProductId.replace("\\", "\\\\").replace("\"", "\\\"")}\"",
+        )
     }
 
     buildTypes {
@@ -39,6 +49,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     lint {
         abortOnError = true
@@ -81,6 +92,7 @@ dependencies {
         // Protected/encrypted/signature-bearing PDFs are rejected before PDFBox loading.
         exclude(group = "org.bouncycastle")
     }
+    implementation(libs.play.billing)
     ksp(libs.androidx.room.compiler)
     ksp(libs.androidx.hilt.compiler)
     ksp(libs.dagger.hilt.compiler)

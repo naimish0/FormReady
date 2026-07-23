@@ -54,11 +54,12 @@ Android 16/API 36 from 31 August 2026; recheck the policy immediately before sub
 
 ## Privacy and Data Safety
 
-- [x] Privacy policy source matches the audited no-ads/no-account/no-backend launch bundle.
+- [x] Privacy policy source matches the audited no-ads/no-account/no-backend bundle and conditional
+  Play Billing behaviour.
 - [x] SDK/data inventory and proposed Data Safety answers are prepared.
 - [x] Account creation: **No**. No developer-held account data exists.
-- [x] Launch bundle data handling: no developer collection/sharing; local files leave only through
-  user-directed Save/Share/Open.
+- [x] User file content is not sent to the developer; local files leave only through user-directed
+  Save/Share/Open. Final Data Safety answers still require ML Kit/Billing SDK reconciliation.
 - [ ] Publish the policy at a public HTTPS, no-login URL; insert effective date; place the exact URL
   in `privacy_policy_url`, Play Console and the store listing; rebuild and verify the link.
 - [ ] Complete and submit Data Safety from the final signed bundle and all third-party SDKs.
@@ -69,9 +70,14 @@ Android 16/API 36 from 31 August 2026; recheck the policy immediately before sub
 ## Advertising, consent and purchases
 
 - [x] 1.0.0 decision: advertising disabled; `NoOpAdManager` only.
-- [x] Contains Ads: **No**; Advertising ID: **not used**; purchases: **none**.
-- [x] No Mobile Ads, UMP, Billing or app-authored analytics exists. ML Kit is the sole
-  network-capable SDK family and must be disclosed.
+- [x] Contains Ads: **No**; Advertising ID: **not used**.
+- [x] Play Billing 9.1.0 is integrated behind an empty-by-default exact product-ID property; the
+  unconfigured build creates no BillingClient and shows no purchase UI.
+- [ ] Create and activate the real non-consumable Play product, build with its exact ID, declare
+  in-app purchases, and complete the success/cancel/pending/already-owned/restore/offline/refund
+  matrix through internal testing before publishing Pro.
+- [ ] Reconcile Billing and its transitive Google Play/data-transport behaviour in Data Safety
+  against the configured signed bundle; never persist or export purchase tokens.
 - [ ] If advertising is proposed later, treat it as a separate reviewed release with real IDs,
   official test IDs in debug, certified regional messages, privacy options, updated declarations,
   `app-ads.txt`, SDK inventory and ad-placement/frequency tests.

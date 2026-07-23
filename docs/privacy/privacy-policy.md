@@ -10,7 +10,7 @@ FormReady is an independent, offline-first file-preparation utility. This policy
 FormReady processes only the photos, signature images, drawings, scanned pages, OCR text, PDFs,
 requirements and settings
 that you choose in the app. Processing occurs on your device. FormReady has no custom backend,
-account system, analytics, advertising SDK, billing SDK or remote AI service.
+account system, analytics, advertising SDK or remote AI service.
 
 ## Local storage and retention
 
@@ -59,6 +59,11 @@ Photo batches use the same local photo processor one item at a time. A batch is 
 is written only when you choose a system document destination. The archive contains validated
 outputs with generated names rather than the original provider names.
 
+If a release enables optional lifetime Pro, Google Play Billing communicates with Google Play to
+show the localized offer, complete payment, report purchase state, restore ownership and
+acknowledge delivery. FormReady does not receive payment-card details. It stores only a local
+yes/no entitlement and does not retain purchase tokens or order identifiers.
+
 ## Diagnostics
 
 The optional local diagnostic export contains only the app version, Android API level, coarse
@@ -81,10 +86,10 @@ release configuration before publication.
 
 ## Accounts, advertising and purchases
 
-FormReady does not create user accounts, show ads or sell purchases in the 1.0.0 launch build.
-Therefore, account-deletion, advertising consent, Advertising ID and billing flows do not apply to
-this build. If a future release adds any of these features, this policy and the Play declarations
-must be updated before that release.
+FormReady does not create user accounts or show ads. The repository includes an optional
+empty-by-default lifetime Pro integration; builds without the exact active Play Console product ID
+hide it completely. A configured release must update the effective date and Play declarations and
+must pass Play purchase testing before publication.
 
 ## Your controls
 

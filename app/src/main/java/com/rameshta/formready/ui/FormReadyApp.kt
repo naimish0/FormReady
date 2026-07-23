@@ -37,6 +37,7 @@ import com.rameshta.formready.feature.signature.SignatureViewModel
 import com.rameshta.formready.feature.batch.BatchRoute
 import com.rameshta.formready.feature.batch.BatchViewModel
 import com.rameshta.formready.core.model.ProcessingJob
+import com.rameshta.formready.core.monetization.ProState
 
 private enum class TopLevelDestination(
     val route: String,
@@ -69,6 +70,9 @@ fun FormReadyApp(
     onDeleteOutputAndHistory: (ProcessingJob, com.rameshta.formready.core.model.OutputArtifact) -> Unit,
     onClearHistory: () -> Unit,
     onClearTemporaryFiles: () -> Unit,
+    proState: ProState,
+    onPurchasePro: () -> Unit,
+    onRestorePro: () -> Unit,
 ) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -170,6 +174,9 @@ fun FormReadyApp(
                         onRestoreSettings = onRestoreSettings,
                         onClearHistory = onClearHistory,
                         onClearTemporaryFiles = onClearTemporaryFiles,
+                        proState = proState,
+                        onPurchasePro = onPurchasePro,
+                        onRestorePro = onRestorePro,
                     )
                 }
                 composable(PHOTO_ROUTE) {

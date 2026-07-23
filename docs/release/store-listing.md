@@ -75,6 +75,14 @@ Support: naimish.app@gmail.com
 Initial release with local photo, signature and PDF preparation; measurable Ready/Not Ready
 validation; reusable presets; history and privacy controls.
 
+## Conditional Pro copy
+
+Do not include Pro in the public listing for the default unconfigured build. After the real
+non-consumable product is active and the configured signed build passes internal purchase testing,
+the listing may add: “Optional one-time Pro unlocks larger convenience batches. Exact preparation
+and validation remain free.” Do not claim server-verified purchases or ad removal while the app
+ships no ads.
+
 ## Search-language guidance
 
 Use phrases such as photo resize, signature resize, PDF size check, exact dimensions, KB limit and

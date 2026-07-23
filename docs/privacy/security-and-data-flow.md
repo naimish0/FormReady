@@ -12,10 +12,11 @@ User-selected content URI, external camera capture, or local drawing
   -> explicit user-selected save/share destination
 ```
 
-The application has no custom backend, analytics, ads, consent, Billing, cloud database, or remote
-AI dependency. ML Kit contributes the documented network permission for module delivery and SDK
-metrics; photo or signature pixels never leave the device unless the user explicitly saves or
-shares the validated output.
+The application has no custom backend, analytics, ads, consent, cloud database, or remote AI
+dependency. ML Kit contributes the documented network permission for module delivery and SDK
+metrics. Optional Play Billing communicates purchase state with Google Play only when an exact
+product ID is configured. Photo or signature pixels never leave the device unless the user
+explicitly saves or shares the validated output.
 
 ## Controls
 
@@ -102,6 +103,20 @@ file names, paths, URIs, thumbnails, OCR, signatures, face data, and user-entere
   validated successful outputs with generated names. Original provider names, paths and URIs are
   not written into the archive.
 - Batch processing adds no permission, SDK, network transfer, analytics or remote service.
+
+## Phase 10 Billing controls
+
+- The Pro product ID is an empty-by-default build property with strict syntax validation. No
+  production identifier is invented; with an empty ID no BillingClient or purchase UI exists.
+- Only the exact configured non-consumable product can grant entitlement, and only in Play's
+  `PURCHASED` state. Pending and unspecified states cannot unlock or be acknowledged.
+- Current purchases are queried on connection/resume/restore. A successful authoritative absence
+  removes the locally cached entitlement; failed/offline queries retain the last confirmed state.
+- Completed unacknowledged purchases are acknowledged client-side. Only a Boolean is persisted;
+  purchase tokens, order identifiers, product details and Billing debug messages are not stored or
+  logged.
+- There is no backend, so verification has weaker tamper resistance and no RTDN/Voided Purchases
+  reconciliation. The app makes no server-grade fraud-prevention claim.
 
 ## Threats tracked
 
