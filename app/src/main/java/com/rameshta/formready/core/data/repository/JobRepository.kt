@@ -28,4 +28,10 @@ interface JobRepository {
     ): Boolean
 
     fun observeRecent(limit: Int): Flow<List<ProcessingJob>>
+
+    suspend fun setFavourite(jobId: UUID, favourite: Boolean)
+
+    suspend fun delete(jobId: UUID)
+
+    suspend fun clear()
 }

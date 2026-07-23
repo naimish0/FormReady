@@ -9,6 +9,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rameshta.formready.core.data.repository.JobRepository
 import com.rameshta.formready.core.data.repository.OutputArtifactRepository
+import com.rameshta.formready.core.data.settings.DefaultByteUnit
+import com.rameshta.formready.core.data.settings.DefaultDimensionUnit
+import com.rameshta.formready.core.data.settings.DefaultImageFormat
+import com.rameshta.formready.core.data.settings.SettingsRepository
 import com.rameshta.formready.core.model.CropMode
 import com.rameshta.formready.core.model.ByteUnit
 import com.rameshta.formready.core.model.DimensionRule
@@ -36,6 +40,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -110,6 +115,7 @@ class PhotoViewModel @Inject constructor(
     private val outputs: OutputArtifactRepository,
     private val scheduler: ProcessingScheduler,
     private val outputAccess: PhotoOutputAccess,
+    private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
     private val mutableState = MutableStateFlow(
         PhotoUiState(
@@ -154,6 +160,40 @@ class PhotoViewModel @Inject constructor(
     private var outputObserver: Job? = null
 
     init {
+        if (
+            savedStateHandle.get<String>(KEY_WIDTH) == null &&
+            savedStateHandle.get<String>(KEY_FORMAT) == null
+        ) {
+            viewModelScope.launch {
+                val defaults = settingsRepository.settings.first()
+                if (!mutableState.value.hasDraft) {
+                    mutableState.update { state ->
+                        state.copy(
+                            selectedPresetId = null,
+                            outputFormat = if (
+                                defaults.defaultImageFormat == DefaultImageFormat.JPEG
+                            ) OutputFormat.JPEG else OutputFormat.PNG,
+                            byteUnit = if (defaults.byteUnit == DefaultByteUnit.DECIMAL) {
+                                ByteUnit.KB
+                            } else {
+                                ByteUnit.KIB
+                            },
+                            dimensionInputMode = if (
+                                defaults.dimensionUnit == DefaultDimensionUnit.PIXELS
+                            ) DimensionInputMode.PIXELS else DimensionInputMode.PHYSICAL,
+                            physicalUnit = when (defaults.dimensionUnit) {
+                                DefaultDimensionUnit.PIXELS,
+                                DefaultDimensionUnit.MILLIMETRES,
+                                -> PhysicalUnit.MILLIMETRES
+                                DefaultDimensionUnit.CENTIMETRES -> PhysicalUnit.CENTIMETRES
+                                DefaultDimensionUnit.INCHES -> PhysicalUnit.INCHES
+                            },
+                            safetyMarginText = if (defaults.safetyMarginEnabled) "" else "0",
+                        )
+                    }
+                }
+            }
+        }
         savedStateHandle.get<String>(KEY_DRAFT_ID)
             ?.let { runCatching { UUID.fromString(it) }.getOrNull() }
             ?.let(::restoreDraft)

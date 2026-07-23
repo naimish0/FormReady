@@ -289,6 +289,12 @@ class PrivatePhotoOutputAccess @Inject constructor(
             Unit
         }
 
+    override suspend fun deleteOwnedOutput(artifact: OutputArtifact): Boolean =
+        withContext(Dispatchers.IO) {
+            val file = outputFile(artifact)
+            !file.exists() || file.delete()
+        }
+
     companion object {
         const val OUTPUT_DIRECTORY = "outputs"
     }

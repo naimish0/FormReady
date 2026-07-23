@@ -332,6 +332,15 @@ class PdfViewModel @Inject constructor(
         mutableState.update { it.copy(errorCode = "NO_COMPATIBLE_APP") }
     }
 
+    fun reuseRequirements(serializedPlan: String) {
+        val plan = runCatching { PhotoPlanCodec.decode(serializedPlan) }.getOrNull() ?: return
+        if (plan.pdfOptions == null) return
+        val size = plan.output.maximumBytes?.div(1_000L)?.toString() ?: "1000"
+        prepareAnother()
+        setMaximumSize(size)
+        setAcknowledged(false)
+    }
+
     private fun observeJob(id: UUID) {
         jobObserver?.cancel()
         outputObserver?.cancel()

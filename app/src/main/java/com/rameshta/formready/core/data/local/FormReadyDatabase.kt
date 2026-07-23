@@ -12,7 +12,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         PresetEntity::class,
         OutputArtifactEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 abstract class FormReadyDatabase : RoomDatabase() {
@@ -37,6 +37,15 @@ abstract class FormReadyDatabase : RoomDatabase() {
                 db.execSQL(
                     "ALTER TABLE output_artifacts ADD COLUMN validationJson TEXT NOT NULL " +
                         "DEFAULT '[]'",
+                )
+            }
+        }
+
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "ALTER TABLE processing_jobs ADD COLUMN isFavourite INTEGER NOT NULL " +
+                        "DEFAULT 0",
                 )
             }
         }

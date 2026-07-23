@@ -1,6 +1,6 @@
 # Dependency and licence inventory
 
-Direct production dependencies through Phase 3:
+Direct production dependencies through Phase 4:
 
 | Dependency | Version | Purpose | Licence/data behaviour |
 |---|---:|---|---|
@@ -25,7 +25,7 @@ JUnit, AndroidX Test, Espresso, Compose test, WorkManager testing, and coroutine
 test-only and Apache 2.0 except JUnit 4 (EPL 1.0).
 
 No native library, ad/consent SDK, billing SDK, PDF engine, camera SDK, image loader, ML model,
-analytics SDK, or network client is shipped through Phase 3. PDF inspection, rendering, and
+analytics SDK, or network client is shipped through Phase 4. PDF inspection, rendering, and
 flattened generation use Android platform APIs rather than a third-party PDF engine. Signature capture delegates to an
 installed camera activity and therefore adds no camera dependency or permission. Re-run the
 licence and data-behaviour audit whenever the catalog changes.

@@ -39,6 +39,7 @@ data class ProcessingJobEntity(
     val createdAtEpochMillis: Long,
     val updatedAtEpochMillis: Long,
     val errorCode: String?,
+    val isFavourite: Boolean = false,
 )
 
 @Entity(

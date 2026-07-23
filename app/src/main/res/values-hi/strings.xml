@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Hindi localization scaffold intentionally contains no machine-translated production strings.
+      Populate through native-speaker translation and review, then add "hi" to locales_config.xml.
+    -->
+</resources>

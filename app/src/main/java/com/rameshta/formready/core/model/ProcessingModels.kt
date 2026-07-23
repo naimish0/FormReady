@@ -159,6 +159,7 @@ data class ProcessingJob(
     val errorCode: String?,
     val serializedPlan: String,
     val stagedInputRelativePath: String?,
+    val isFavourite: Boolean = false,
 )
 
 data class OutputArtifact(

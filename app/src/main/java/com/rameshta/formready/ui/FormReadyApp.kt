@@ -28,6 +28,7 @@ import com.rameshta.formready.feature.photo.PhotoViewModel
 import com.rameshta.formready.feature.pdf.PdfRoute
 import com.rameshta.formready.feature.pdf.PdfViewModel
 import com.rameshta.formready.feature.presets.PresetsScreen
+import com.rameshta.formready.feature.presets.PresetsViewModel
 import com.rameshta.formready.feature.settings.SettingsScreen
 import com.rameshta.formready.feature.signature.SignatureRoute
 import com.rameshta.formready.feature.signature.SignatureViewModel
@@ -49,11 +50,19 @@ fun FormReadyApp(
     settings: UserSettings,
     onThemeSelected: (ThemePreference) -> Unit,
     onDynamicColourChanged: (Boolean) -> Unit,
+    onSettingsChanged: (UserSettings.() -> UserSettings) -> Unit,
+    onRestoreSettings: () -> Unit,
     photoViewModel: PhotoViewModel,
     signatureViewModel: SignatureViewModel,
     pdfViewModel: PdfViewModel,
+    presetsViewModel: PresetsViewModel,
     recentJobs: List<ProcessingJob>,
     recentArtifactsByJob: Map<String, com.rameshta.formready.core.model.OutputArtifact>,
+    onJobFavourite: (ProcessingJob, Boolean) -> Unit,
+    onDeleteHistory: (ProcessingJob) -> Unit,
+    onDeleteOutputAndHistory: (ProcessingJob, com.rameshta.formready.core.model.OutputArtifact) -> Unit,
+    onClearHistory: () -> Unit,
+    onClearTemporaryFiles: () -> Unit,
 ) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -104,15 +113,34 @@ fun FormReadyApp(
                         onPreparePdf = { navController.navigate(PDF_ROUTE) },
                     )
                 }
-                composable(TopLevelDestination.PRESETS.route) { PresetsScreen() }
+                composable(TopLevelDestination.PRESETS.route) {
+                    PresetsScreen(presetsViewModel)
+                }
                 composable(TopLevelDestination.HISTORY.route) {
                     HistoryScreen(
                         jobs = recentJobs,
                         artifactsByJob = recentArtifactsByJob,
                         onRepeat = { job ->
-                            photoViewModel.reuseRequirements(job.serializedPlan)
-                            navController.navigate(PHOTO_ROUTE)
+                            when (job.type) {
+                                com.rameshta.formready.core.model.JobType.PHOTO -> {
+                                    photoViewModel.reuseRequirements(job.serializedPlan)
+                                    navController.navigate(PHOTO_ROUTE)
+                                }
+                                com.rameshta.formready.core.model.JobType.SIGNATURE -> {
+                                    signatureViewModel.reuseRequirements(job.serializedPlan)
+                                    navController.navigate(SIGNATURE_ROUTE)
+                                }
+                                com.rameshta.formready.core.model.JobType.PDF -> {
+                                    pdfViewModel.reuseRequirements(job.serializedPlan)
+                                    navController.navigate(PDF_ROUTE)
+                                }
+                                com.rameshta.formready.core.model.JobType.VALIDATION -> Unit
+                            }
                         },
+                        onFavourite = onJobFavourite,
+                        onDelete = onDeleteHistory,
+                        onDeleteOutputAndHistory = onDeleteOutputAndHistory,
+                        onClear = onClearHistory,
                     )
                 }
                 composable(TopLevelDestination.SETTINGS.route) {
@@ -120,6 +148,10 @@ fun FormReadyApp(
                         settings = settings,
                         onThemeSelected = onThemeSelected,
                         onDynamicColourChanged = onDynamicColourChanged,
+                        onSettingsChanged = onSettingsChanged,
+                        onRestoreSettings = onRestoreSettings,
+                        onClearHistory = onClearHistory,
+                        onClearTemporaryFiles = onClearTemporaryFiles,
                     )
                 }
                 composable(PHOTO_ROUTE) {

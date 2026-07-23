@@ -1,24 +1,40 @@
 package com.rameshta.formready.feature.settings
 
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Button
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.rameshta.formready.R
+import com.rameshta.formready.core.data.settings.DefaultByteUnit
+import com.rameshta.formready.core.data.settings.DefaultDimensionUnit
+import com.rameshta.formready.core.data.settings.DefaultImageFormat
 import com.rameshta.formready.core.data.settings.ThemePreference
 import com.rameshta.formready.core.data.settings.UserSettings
 
@@ -27,75 +43,268 @@ fun SettingsScreen(
     settings: UserSettings,
     onThemeSelected: (ThemePreference) -> Unit,
     onDynamicColourChanged: (Boolean) -> Unit,
+    onSettingsChanged: (UserSettings.() -> UserSettings) -> Unit,
+    onRestoreSettings: () -> Unit,
+    onClearHistory: () -> Unit,
+    onClearTemporaryFiles: () -> Unit,
 ) {
+    val context = LocalContext.current
+    var pendingAction by remember { mutableStateOf<SettingsDestructiveAction?>(null) }
+    val versionName = remember(context) {
+        runCatching {
+            context.packageManager.getPackageInfo(context.packageName, 0).versionName
+        }.getOrNull() ?: "—"
+    }
+    val diagnostics = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("text/plain"),
+    ) { uri ->
+        if (uri != null) {
+            runCatching {
+                context.contentResolver.openOutputStream(uri, "w")?.bufferedWriter()?.use { writer ->
+                    writer.write(
+                        LocalDiagnostics(
+                            appVersion = versionName,
+                            androidApi = Build.VERSION.SDK_INT,
+                            availableMemoryMiB = Runtime.getRuntime().maxMemory() / 1_048_576,
+                            availableStorageMiB = context.filesDir.usableSpace / 1_048_576,
+                        ).render(),
+                    )
+                }
+            }
+        }
+    }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(24.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(24.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item {
             Text(
-                text = stringResource(R.string.settings_title),
+                stringResource(R.string.settings_title),
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.semantics { heading() },
             )
         }
         item {
-            Text(
-                text = stringResource(R.string.settings_theme),
-                style = MaterialTheme.typography.titleMedium,
-            )
-        }
-        ThemePreference.entries.forEach { preference ->
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    RadioButton(
-                        selected = settings.theme == preference,
-                        onClick = { onThemeSelected(preference) },
+            SettingHeading(stringResource(R.string.settings_language))
+            Button(
+                onClick = {
+                    val action = if (Build.VERSION.SDK_INT >= 33) {
+                        Settings.ACTION_APP_LOCALE_SETTINGS
+                    } else {
+                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                    }
+                    context.startActivity(
+                        Intent(action).setData(Uri.parse("package:${context.packageName}")),
                     )
-                    Text(
-                        text = when (preference) {
-                            ThemePreference.SYSTEM -> stringResource(R.string.theme_system)
-                            ThemePreference.LIGHT -> stringResource(R.string.theme_light)
-                            ThemePreference.DARK -> stringResource(R.string.theme_dark)
-                        },
-                    )
-                }
-            }
+                },
+            ) { Text(stringResource(R.string.settings_language_system)) }
         }
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(R.string.settings_dynamic_colour),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    Text(
-                        text = stringResource(R.string.settings_dynamic_colour_description),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                Switch(
-                    checked = settings.useDynamicColour,
-                    onCheckedChange = onDynamicColourChanged,
+            SettingHeading(stringResource(R.string.settings_theme))
+            ThemePreference.entries.forEach { preference ->
+                ChoiceRow(
+                    selected = settings.theme == preference,
+                    label = when (preference) {
+                        ThemePreference.SYSTEM -> stringResource(R.string.theme_system)
+                        ThemePreference.LIGHT -> stringResource(R.string.theme_light)
+                        ThemePreference.DARK -> stringResource(R.string.theme_dark)
+                    },
+                    onClick = { onThemeSelected(preference) },
                 )
             }
         }
         item {
-            Text(
-                text = stringResource(R.string.settings_privacy_summary),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 12.dp),
+            ToggleRow(
+                stringResource(R.string.settings_dynamic_colour),
+                settings.useDynamicColour,
+                onDynamicColourChanged,
             )
         }
+        item {
+            SettingHeading(stringResource(R.string.settings_units))
+            DefaultDimensionUnit.entries.forEach { unit ->
+                ChoiceRow(
+                    settings.dimensionUnit == unit,
+                    stringResource(
+                        when (unit) {
+                            DefaultDimensionUnit.PIXELS -> R.string.unit_pixels
+                            DefaultDimensionUnit.MILLIMETRES -> R.string.unit_millimetres
+                            DefaultDimensionUnit.CENTIMETRES -> R.string.unit_centimetres
+                            DefaultDimensionUnit.INCHES -> R.string.unit_inches_long
+                        },
+                    ),
+                ) { onSettingsChanged { copy(dimensionUnit = unit) } }
+            }
+        }
+        item {
+            SettingHeading(stringResource(R.string.settings_byte_units))
+            DefaultByteUnit.entries.forEach { unit ->
+                ChoiceRow(
+                    settings.byteUnit == unit,
+                    stringResource(
+                        if (unit == DefaultByteUnit.DECIMAL) {
+                            R.string.byte_unit_decimal
+                        } else {
+                            R.string.byte_unit_binary
+                        },
+                    ),
+                ) {
+                    onSettingsChanged { copy(byteUnit = unit) }
+                }
+            }
+        }
+        item {
+            SettingHeading(stringResource(R.string.settings_output_destination))
+            Text(stringResource(R.string.settings_output_destination_picker))
+        }
+        item {
+            SettingHeading(stringResource(R.string.settings_default_format))
+            DefaultImageFormat.entries.forEach { format ->
+                ChoiceRow(
+                    settings.defaultImageFormat == format,
+                    stringResource(
+                        if (format == DefaultImageFormat.JPEG) {
+                            R.string.image_format_jpeg
+                        } else {
+                            R.string.image_format_png
+                        },
+                    ),
+                ) {
+                    onSettingsChanged { copy(defaultImageFormat = format) }
+                }
+            }
+        }
+        item {
+            ToggleRow(stringResource(R.string.settings_quality_guard), settings.qualityGuardEnabled) {
+                onSettingsChanged { copy(qualityGuardEnabled = it) }
+            }
+        }
+        item {
+            ToggleRow(stringResource(R.string.settings_safety_margin), settings.safetyMarginEnabled) {
+                onSettingsChanged { copy(safetyMarginEnabled = it) }
+            }
+        }
+        item {
+            ToggleRow(
+                stringResource(R.string.settings_remove_metadata),
+                settings.removeMetadataByDefault,
+            ) { onSettingsChanged { copy(removeMetadataByDefault = it) } }
+        }
+        item {
+            ToggleRow(stringResource(R.string.settings_history_enabled), settings.historyEnabled) {
+                onSettingsChanged { copy(historyEnabled = it) }
+            }
+        }
+        item {
+            ToggleRow(stringResource(R.string.settings_thumbnails), settings.thumbnailsEnabled) {
+                onSettingsChanged { copy(thumbnailsEnabled = it) }
+            }
+        }
+        item {
+            ToggleRow(
+                stringResource(R.string.settings_auto_cleanup),
+                settings.automaticCleanupEnabled,
+            ) { onSettingsChanged { copy(automaticCleanupEnabled = it) } }
+        }
+        item {
+            ToggleRow(
+                stringResource(R.string.settings_privacy_mode),
+                settings.privacyModeEnabled,
+            ) { onSettingsChanged { copy(privacyModeEnabled = it) } }
+        }
+        item {
+            ToggleRow(stringResource(R.string.settings_reduced_motion), settings.reducedMotion) {
+                onSettingsChanged { copy(reducedMotion = it) }
+            }
+        }
+        item {
+            Text(
+                stringResource(R.string.settings_privacy_summary),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Button(onClick = { pendingAction = SettingsDestructiveAction.CLEAR_HISTORY }) {
+                Text(stringResource(R.string.settings_clear_history))
+            }
+            Button(onClick = { pendingAction = SettingsDestructiveAction.CLEAR_TEMPORARY }) {
+                Text(stringResource(R.string.settings_clear_temporary))
+            }
+            Button(onClick = { pendingAction = SettingsDestructiveAction.RESTORE_DEFAULTS }) {
+                Text(stringResource(R.string.settings_restore_defaults))
+            }
+        }
+        item {
+            SettingHeading(stringResource(R.string.settings_about))
+            Text(stringResource(R.string.settings_version, versionName))
+            Text(stringResource(R.string.settings_licenses_summary))
+            Button(onClick = {
+                diagnostics.launch("formready-diagnostics.txt")
+            }) { Text(stringResource(R.string.settings_export_diagnostics)) }
+            Text(stringResource(R.string.settings_support_unavailable))
+        }
+    }
+    pendingAction?.let { action ->
+        AlertDialog(
+            onDismissRequest = { pendingAction = null },
+            title = { Text(stringResource(action.titleRes)) },
+            text = { Text(stringResource(action.messageRes)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    when (action) {
+                        SettingsDestructiveAction.CLEAR_HISTORY -> onClearHistory()
+                        SettingsDestructiveAction.CLEAR_TEMPORARY -> onClearTemporaryFiles()
+                        SettingsDestructiveAction.RESTORE_DEFAULTS -> onRestoreSettings()
+                    }
+                    pendingAction = null
+                }) {
+                    Text(stringResource(R.string.action_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingAction = null }) {
+                    Text(stringResource(R.string.action_keep))
+                }
+            },
+        )
+    }
+}
+
+private enum class SettingsDestructiveAction(
+    val titleRes: Int,
+    val messageRes: Int,
+) {
+    CLEAR_HISTORY(R.string.settings_clear_history, R.string.settings_clear_history_confirm),
+    CLEAR_TEMPORARY(
+        R.string.settings_clear_temporary,
+        R.string.settings_clear_temporary_confirm,
+    ),
+    RESTORE_DEFAULTS(
+        R.string.settings_restore_defaults,
+        R.string.settings_restore_defaults_confirm,
+    ),
+}
+
+@Composable
+private fun SettingHeading(value: String) {
+    Text(value, style = MaterialTheme.typography.titleMedium)
+}
+
+@Composable
+private fun ChoiceRow(selected: Boolean, label: String, onClick: () -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        RadioButton(selected = selected, onClick = onClick)
+        Text(label)
+    }
+}
+
+@Composable
+private fun ToggleRow(label: String, checked: Boolean, onChanged: (Boolean) -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(label, modifier = Modifier.weight(1f))
+        Switch(checked = checked, onCheckedChange = onChanged)
     }
 }

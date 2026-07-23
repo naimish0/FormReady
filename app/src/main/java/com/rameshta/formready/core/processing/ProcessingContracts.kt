@@ -71,6 +71,8 @@ interface PhotoOutputAccess {
     fun shareUri(artifact: OutputArtifact): Uri
 
     suspend fun copyTo(artifact: OutputArtifact, destination: Uri)
+
+    suspend fun deleteOwnedOutput(artifact: OutputArtifact): Boolean
 }
 
 interface ImageTransformEngine {

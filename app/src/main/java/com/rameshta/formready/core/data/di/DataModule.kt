@@ -9,6 +9,8 @@ import com.rameshta.formready.core.data.local.ProcessingJobDao
 import com.rameshta.formready.core.data.local.ProjectDao
 import com.rameshta.formready.core.data.repository.JobRepository
 import com.rameshta.formready.core.data.repository.OutputArtifactRepository
+import com.rameshta.formready.core.data.repository.PresetRepository
+import com.rameshta.formready.core.data.repository.RoomPresetRepository
 import com.rameshta.formready.core.data.repository.RoomJobRepository
 import com.rameshta.formready.core.data.repository.RoomOutputArtifactRepository
 import com.rameshta.formready.core.data.repository.TimeProvider
@@ -40,6 +42,10 @@ abstract class DataBindingsModule {
     abstract fun bindOutputArtifactRepository(
         implementation: RoomOutputArtifactRepository,
     ): OutputArtifactRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindPresetRepository(implementation: RoomPresetRepository): PresetRepository
 }
 
 @Module
@@ -52,7 +58,10 @@ object DataModule {
             context,
             FormReadyDatabase::class.java,
             "formready.db",
-        ).addMigrations(FormReadyDatabase.MIGRATION_1_2).build()
+        ).addMigrations(
+            FormReadyDatabase.MIGRATION_1_2,
+            FormReadyDatabase.MIGRATION_2_3,
+        ).build()
 
     @Provides
     fun provideProjectDao(database: FormReadyDatabase): ProjectDao = database.projectDao()
