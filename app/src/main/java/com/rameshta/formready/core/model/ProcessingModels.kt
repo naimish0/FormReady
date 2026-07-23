@@ -76,7 +76,42 @@ sealed interface NormalizedTransform {
         }
     }
 
-    data class FitPad(val backgroundArgb: Int) : NormalizedTransform
+    data class FitPad(
+        val backgroundArgb: Int,
+        val paddingFraction: Float = 0f,
+        val horizontalOffset: Float = 0f,
+        val verticalOffset: Float = 0f,
+    ) : NormalizedTransform {
+        init {
+            require(paddingFraction in 0f..0.45f)
+            require(horizontalOffset in -1f..1f)
+            require(verticalOffset in -1f..1f)
+        }
+    }
+}
+
+data class SignatureOptions(
+    val grayscale: Boolean = true,
+    val contrastPercent: Int = 120,
+    val threshold: Int = 190,
+    val cleanPaperBackground: Boolean = true,
+    val removeSpeckles: Boolean = true,
+    val autoCrop: Boolean = true,
+    val safeMarginPercent: Int = 6,
+    val inkArgb: Int = 0xFF111111.toInt(),
+    val transparentBackground: Boolean = false,
+    val cropLeft: Float = 0f,
+    val cropTop: Float = 0f,
+    val cropRight: Float = 1f,
+    val cropBottom: Float = 1f,
+) {
+    init {
+        require(contrastPercent in 50..250)
+        require(threshold in 1..254)
+        require(safeMarginPercent in 0..25)
+        require(cropLeft >= 0f && cropLeft < cropRight && cropRight <= 1f)
+        require(cropTop >= 0f && cropTop < cropBottom && cropBottom <= 1f)
+    }
 }
 
 data class ProcessingPlan(
@@ -85,6 +120,7 @@ data class ProcessingPlan(
     val output: OutputSpecification,
     val hardRuleIds: Set<String>,
     val advisoryRuleIds: Set<String>,
+    val signatureOptions: SignatureOptions? = null,
 )
 
 data class ProcessingJob(

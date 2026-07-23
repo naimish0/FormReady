@@ -1,9 +1,9 @@
 # Security and data flow
 
-## Phase 1 photo flow
+## Phase 1–2 photo and signature flow
 
 ```text
-User-selected content URI
+User-selected content URI, external camera capture, or local drawing
   -> buffered, cancellable bounded copy
   -> app no-backup private staging (.part then complete file)
   -> magic-byte, bounds, decode, and EXIF inspection
@@ -13,8 +13,8 @@ User-selected content URI
 ```
 
 The application has no network permission, custom backend, analytics, ads, consent, Billing,
-cloud database, or remote AI dependency. Photo pixels never leave the device unless the user
-explicitly saves or shares the validated output.
+cloud database, or remote AI dependency. Photo or signature pixels never leave the device unless
+the user explicitly saves or shares the validated output.
 
 ## Controls
 
@@ -25,6 +25,9 @@ explicitly saves or shares the validated output.
 - Room stores typed job metadata; no raw file bytes, password, or bitmap.
 - Staging rejects zero bytes and content over 200 MiB, cleans partial files after error, and exposes only a completed private file.
 - Input format is determined from file bytes and successful decoding, not a provider name or MIME claim.
+- Signature capture/drawing sources use private cache only until the bounded no-backup staging
+  copy completes, then are removed; abandoned capture files expire through startup cleanup.
+- Replacing or discarding a signature draft removes its previous no-backup staged input.
 - JPEG outputs are rendered into a new bitmap and written with only required orientation/DPI
   metadata; PNG DPI is written as a native `pHYs` chunk. Outputs are reopened before Ready.
 - Heavy image pipelines are serialized, decode sampling is bounded for the requested output,
@@ -34,10 +37,9 @@ explicitly saves or shares the validated output.
 
 ## Remaining processor requirements
 
-PDFs and future signature inputs remain untrusted. Enforce dimensions/pages/passes, estimate
-memory before allocation, close resources, remove partial outputs, and reopen final private
-candidates. Diagnostics must exclude file names, paths, URIs, thumbnails, OCR, signatures,
-face data, and user-entered personal data.
+PDF inputs remain untrusted. Enforce pages/passes, estimate memory before allocation, close
+resources, remove partial outputs, and reopen final private candidates. Diagnostics must exclude
+file names, paths, URIs, thumbnails, OCR, signatures, face data, and user-entered personal data.
 
 ## Threats tracked
 

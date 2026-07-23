@@ -1,6 +1,6 @@
 # Dependency and licence inventory
 
-Direct production dependencies through Phase 1:
+Direct production dependencies through Phase 2:
 
 | Dependency | Version | Purpose | Licence/data behaviour |
 |---|---:|---|---|
@@ -25,7 +25,8 @@ JUnit, AndroidX Test, Espresso, Compose test, WorkManager testing, and coroutine
 test-only and Apache 2.0 except JUnit 4 (EPL 1.0).
 
 No native library, ad/consent SDK, billing SDK, PDF engine, camera SDK, image loader, ML model,
-analytics SDK, or network client is shipped through Phase 1. Re-run the licence and
-data-behaviour audit whenever the catalog changes.
+analytics SDK, or network client is shipped through Phase 2. Signature capture delegates to an
+installed camera activity and therefore adds no camera dependency or permission. Re-run the
+licence and data-behaviour audit whenever the catalog changes.
 
 The Gradle/AGP/Kotlin versions are intentionally pinned to the API 36-compatible matrix supported by Android Studio Panda 2. Lint may report newer stable toolchain releases; upgrade Android Studio, the Android API target, Gradle, AGP, and the shrinker together as a separately verified build change.

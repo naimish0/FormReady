@@ -2,6 +2,18 @@
 
 The master specification is `FormReady-Codex-Master-Prompt.md`. Exactly one launch phase is completed per implementation run.
 
+## Per-phase Git workflow
+
+Use the Phase 1 branch and PR pattern for every numbered phase:
+
+1. Fast-forward local `main` from `origin/main`, then create `phase-N` from that exact baseline.
+2. Keep the branch limited to Phase N implementation, tests, audits, and its checkpoint.
+3. Run the repository done-criteria gates before creating one `Complete Phase N …` commit.
+4. Push `phase-N`, open a ready-for-review PR into `main`, and merge only after required checks
+   and review are satisfied.
+5. Fast-forward local `main` after the merge, then create the next phase branch. Never implement
+   two numbered phases on one branch or reuse a merged phase branch.
+
 ## Phase checkpoints
 
 - [x] Phase 0 — Discovery and foundation
@@ -25,17 +37,34 @@ The master specification is `FormReady-Codex-Master-Prompt.md`. Exactly one laun
     Device coverage includes JPEG/PNG/WebP magic detection, corrupt/empty/animated rejection,
     all EXIF orientations, metadata stripping, JPEG/PNG DPI reopen, exact and maximum
     geometry, impossible targets, a synthetic 48 MP input, Room migration, and UI navigation.
-- [ ] Phase 2 — Signature preparation
+- [x] Phase 2 — Signature preparation
+  - Gallery import, external camera capture, and optional finger/stylus drawing feed the same
+    bounded private staging and magic-byte inspection path without storage or camera permission.
+  - Reversible manual/automatic crop, safe margin, grayscale, contrast, threshold, paper
+    cleanup, conservative speckle removal, black/blue ink, rotation, deskew, padding, labelled
+    positioning controls, white background, and transparent PNG are available with
+    original/processed comparison.
+  - Exact fit-without-stretch dimensions, shared bounded target-size encoding, native DPI,
+    reopened output validation, durable history, retry/cancel, Save/Open/Share, and Prepare
+    Another are wired through the typed signature processor.
+  - Verification on 2026-07-23: unit tests, `lintDebug`, `assembleDebug`, minified/R8
+    `bundleRelease`, and 17 connected tests passed on a Samsung SM-S928B running Android 16.
+    Synthetic device coverage includes cleanup/crop/recolour/transparent PNG, empty-signature
+    rejection, normalized preview rotation/padding/position, plan round-trip, and signature UI
+    navigation. The release dependency inventory is unchanged, and the merged manifests contain
+    only WorkManager `WAKE_LOCK`, `RECEIVE_BOOT_COMPLETED`, and the AndroidX dynamic-receiver
+    signature permission; backup and cleartext remain disabled.
 - [ ] Phase 3 — PDF validation and compression
 - [ ] Phase 4 — Presets, history, settings, accessibility, and localization
 - [ ] Phase 5 — Monetization decision, launch QA, and release assets
 
 ## Next-run handoff
 
-Continue FormReady from this file and the shared Phase 1 checkpoint. Implement only Phase 2
-signature preparation without re-auditing completed Phase 1. Reuse the validated requirement,
-target-size, export, validation, history, and private-staging foundations. Preserve single-module
-package boundaries and run targeted tests plus the repository done-criteria gates.
+Continue FormReady from this file and the shared Phase 2 checkpoint. Implement only Phase 3 PDF
+validation and compression without re-auditing completed photo/signature phases. Reuse the
+validated requirement, export, validation, history, private-staging, durable-work, and
+cancellation foundations. Preserve single-module package boundaries and run targeted tests plus
+the repository done-criteria gates.
 
 ## 2026-07-23 single-module conversion checkpoint
 

@@ -27,6 +27,8 @@ import com.rameshta.formready.feature.photo.PhotoRoute
 import com.rameshta.formready.feature.photo.PhotoViewModel
 import com.rameshta.formready.feature.presets.PresetsScreen
 import com.rameshta.formready.feature.settings.SettingsScreen
+import com.rameshta.formready.feature.signature.SignatureRoute
+import com.rameshta.formready.feature.signature.SignatureViewModel
 import com.rameshta.formready.core.model.ProcessingJob
 
 private enum class TopLevelDestination(
@@ -46,6 +48,7 @@ fun FormReadyApp(
     onThemeSelected: (ThemePreference) -> Unit,
     onDynamicColourChanged: (Boolean) -> Unit,
     photoViewModel: PhotoViewModel,
+    signatureViewModel: SignatureViewModel,
     recentJobs: List<ProcessingJob>,
     recentArtifactsByJob: Map<String, com.rameshta.formready.core.model.OutputArtifact>,
 ) {
@@ -57,7 +60,7 @@ fun FormReadyApp(
         modifier = Modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            if (currentDestination?.route != PHOTO_ROUTE) {
+            if (currentDestination?.route !in setOf(PHOTO_ROUTE, SIGNATURE_ROUTE)) {
                 NavigationBar {
                     TopLevelDestination.entries.forEach { destination ->
                     val selected = currentDestination?.hierarchy
@@ -94,6 +97,7 @@ fun FormReadyApp(
                 composable(TopLevelDestination.HOME.route) {
                     HomeScreen(
                         onPreparePhoto = { navController.navigate(PHOTO_ROUTE) },
+                        onPrepareSignature = { navController.navigate(SIGNATURE_ROUTE) },
                     )
                 }
                 composable(TopLevelDestination.PRESETS.route) { PresetsScreen() }
@@ -120,9 +124,16 @@ fun FormReadyApp(
                         viewModel = photoViewModel,
                     )
                 }
+                composable(SIGNATURE_ROUTE) {
+                    SignatureRoute(
+                        onBack = { navController.popBackStack() },
+                        viewModel = signatureViewModel,
+                    )
+                }
             }
         }
     }
 }
 
 private const val PHOTO_ROUTE = "photo"
+private const val SIGNATURE_ROUTE = "signature"

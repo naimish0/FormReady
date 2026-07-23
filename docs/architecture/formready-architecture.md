@@ -25,8 +25,11 @@ Durable jobs use a UUID and typed `QUEUED -> RUNNING -> SUCCEEDED|FAILED|CANCELL
 
 External `content://` inputs are streamed to `noBackupFilesDir/staged-inputs` through a `.part`
 file. Staging is cancellable, bounded at 200 MiB, rejects empty input, and renames the complete
-private file before exposure. Photo processing validates magic bytes and decoded metadata,
-normalizes orientation, uses bounded target-aware decoding, and serializes memory-intensive jobs.
+private file before exposure. Photo and signature processing validate magic bytes and decoded
+metadata, normalize orientation, use bounded target-aware decoding, and serialize
+memory-intensive jobs through one application-wide gate. Signature plans add deterministic local
+cleanup and normalized crop/rotation/placement controls before using the shared image encoder and
+reopened validation path.
 
 Exports are generated and reopened/validated privately before one explicit copy to a user
 destination. Originals are never overwritten. Output records retain the immutable processing
@@ -40,4 +43,4 @@ recipe, real byte count, reopened dimensions/DPI, readiness, and rule results.
 - WorkManager for committed durable exports.
 - Min API 24; compile/target API 36; Java bytecode/toolchain level 17.
 
-No network dependency or permission is present through Phase 1.
+No network dependency or permission is present through Phase 2.

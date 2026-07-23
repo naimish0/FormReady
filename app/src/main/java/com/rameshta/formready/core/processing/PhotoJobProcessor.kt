@@ -12,8 +12,6 @@ import com.rameshta.formready.core.model.readiness
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.UUID
@@ -26,10 +24,11 @@ class PhotoJobProcessor @Inject constructor(
     private val imageTransformEngine: ImageTransformEngine,
     private val inputStager: InputStager,
     private val timeProvider: TimeProvider,
+    private val processingGate: ImageProcessingGate,
 ) : JobProcessor {
     override val supportedType: JobType = JobType.PHOTO
 
-    override suspend fun process(jobId: UUID): ProcessorResult = IMAGE_PROCESSING_MUTEX.withLock {
+    override suspend fun process(jobId: UUID): ProcessorResult = processingGate.run {
         withContext(Dispatchers.IO) {
         val job = jobs.get(jobId) ?: return@withContext ProcessorResult.Failure(ERROR_JOB_MISSING)
         val relativeInput = job.stagedInputRelativePath
@@ -125,7 +124,6 @@ class PhotoJobProcessor @Inject constructor(
     }
 
     companion object {
-        private val IMAGE_PROCESSING_MUTEX = Mutex()
         const val ERROR_JOB_MISSING = "JOB_MISSING"
         const val ERROR_INPUT_MISSING = "INPUT_MISSING"
         const val ERROR_PLAN_INVALID = "PLAN_INVALID"
