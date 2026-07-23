@@ -1,28 +1,31 @@
-# Preset schema
+# Preset files
 
-Presets use a versioned local representation imported into Room. Phase 1 ships conservative,
-generic photo presets in code (portrait 600×800 px, 35×45 mm at 300 DPI, and 2×2 inches at
-300 DPI). Organization-specific presets, remote claims, and unverified compliance language
-remain excluded. The Room table continues to reserve durable custom/versioned presets for
-Phase 4.
+Presets are shared as `.formready` files. The Presets screen presents their name, document
+type, dimensions or page limit, and maximum file size in plain language. Import always shows
+that same summary for confirmation before anything is saved.
 
-Required fields:
+JSON remains the internal, versioned serialization format. It is not shown in preset cards and
+users are not expected to read or edit it. The importer continues to accept legacy JSON
+documents for compatibility, but exported files use the `.formready` extension and the
+`application/vnd.formready.preset+json` MIME type.
+
+The current internal schema contains:
 
 ```text
-id, schemaVersion, revision, name, category, targetType,
-countryRegion?, documentType?, allowedFormats,
-widthPx?, heightPx?, widthMm?, heightMm?, dpi?,
-minBytes?, maxBytes?, unitInterpretation, aspectRatio?,
-backgroundRules?, pageCount?, pageSize?, orientation?,
-headHeightRange?, eyeLineRange?, cropMode, safetyMargin,
-notes?, sourceUrl?, sourceCheckedAt?
+fileType, schemaVersion, revision, id, name, targetType,
+specification { maximumBytes, widthPx?, heightPx?, maximumPages? },
+sourceUrl?, sourceCheckedAtEpochMillis?
 ```
 
 Invariants:
 
-- IDs and revisions are stable; verified named presets are immutable snapshots.
-- Byte values are exact and unit interpretation is explicit.
-- Dimensions and limits are positive and internally consistent.
-- Named organizations require an official source URL and visible verification date.
-- Imports reject unknown major schema versions, duplicate keys, oversized payloads, invalid enums, unsafe URLs, non-finite values, and contradictory bounds.
+- Imports receive a new local ID and never overwrite an existing preset.
+- Names must contain 1–80 characters.
+- File size must be positive and no larger than 200 MiB.
+- Photo and signature dimensions must be 1–20,000 pixels per side.
+- PDF page limits must be 1–250.
+- Imports reject unsupported schema versions, unknown document types, oversized payloads,
+  invalid limits, and unsafe source URLs.
+- Validation failures are mapped to human-readable messages; raw parser errors and field names
+  are never shown to the user.
 - Historical jobs retain a snapshot rather than a mutable preset reference.
