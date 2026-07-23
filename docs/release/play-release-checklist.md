@@ -6,7 +6,7 @@
 - [ ] Run unit, lint, debug, instrumented, minified release, and bundle tasks.
 - [ ] Validate AAB, 16 KB compatibility, Baseline Profile, and Macrobenchmark evidence.
 - [ ] Audit final merged manifest, permissions, SDK inventory, and dependency verification.
-- [ ] Test API 24, API 37, reference performance device, tablets, foldable, RTL, and 200% font.
+- [ ] Test API 24, API 36, reference performance device, tablets, foldable, RTL, and 200% font.
 - [ ] Provide production signing only outside version control and enable Play App Signing.
 
 ## Policy and listing

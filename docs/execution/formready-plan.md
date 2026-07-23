@@ -5,7 +5,7 @@ The master specification is `FormReady-Codex-Master-Prompt.md`. Exactly one laun
 ## Phase checkpoints
 
 - [x] Phase 0 — Discovery and foundation
-  - Multi-module production architecture, stable dependency catalog, API 37/JDK 17, minified/shrunk release build.
+  - Multi-module production architecture, stable dependency catalog, API 36/JDK 17, minified/shrunk release build.
   - Compose design system, four-destination navigation shell, functional persisted theme settings.
   - Room schema and repositories, DataStore settings, typed job state machine, bounded private input staging, unique WorkManager scheduling, Hilt wiring.
   - Original document/check launcher, round, monochrome, and splash vectors.
@@ -25,5 +25,5 @@ Continue FormReady from this file. Re-read `AGENTS.md` and the master specificat
 ## Known release gates
 
 - Hindi resources and native-speaker approval are not part of Phase 0 and remain required before advertising Hindi support.
-- API 24 compatibility, API 37 behaviour, full accessibility, large-fixture, Baseline Profile, and Macrobenchmark evidence remain future-phase release work. Phase 0 startup/navigation passed on a physical Android 16 device.
+- API 24 compatibility, API 36 behaviour, full accessibility, large-fixture, Baseline Profile, and Macrobenchmark evidence remain future-phase release work. Phase 0 startup/navigation passed on a physical Android 16 device.
 - No ad, consent, Billing, PDF, image, camera, or ML SDK is currently shipped.

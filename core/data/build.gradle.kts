@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.rameshta.formready.core.data"
-    compileSdk = 37
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 24

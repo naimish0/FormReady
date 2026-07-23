@@ -32,6 +32,6 @@ Exports will be generated and validated privately before one explicit copy to a 
 - Room for jobs/projects/presets/output records.
 - DataStore for lightweight user settings.
 - WorkManager for committed durable exports.
-- Min API 24; compile/target API 37; Java bytecode/toolchain level 17.
+- Min API 24; compile/target API 36; Java bytecode/toolchain level 17.
 
 No network dependency or permission is present in Phase 0.

@@ -12,7 +12,7 @@
 ## Required device matrix before release
 
 - API 24 compatibility device/emulator.
-- API 37 behaviour device/emulator.
+- API 36 behaviour device/emulator.
 - Arm64 Android 14+ reference profile with 4 GB RAM and constrained storage.
 - Phone, 7-inch tablet, 10-inch tablet, landscape, and foldable layouts.
 
