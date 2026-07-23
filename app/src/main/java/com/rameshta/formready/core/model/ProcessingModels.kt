@@ -161,6 +161,24 @@ data class IdPhotoOptions(
     }
 }
 
+data class BatchRequirements(
+    val widthPx: Int,
+    val heightPx: Int,
+    val maximumBytes: Long,
+    val dpi: Int?,
+    val outputFormat: OutputFormat,
+    val cropMode: CropMode,
+    val backgroundArgb: Int = 0xFFFFFFFF.toInt(),
+) {
+    init {
+        require(widthPx in 1..20_000)
+        require(heightPx in 1..20_000)
+        require(maximumBytes in 1..200L * 1024L * 1024L)
+        require(dpi == null || dpi in 1..2_400)
+        require(outputFormat == OutputFormat.JPEG || outputFormat == OutputFormat.PNG)
+    }
+}
+
 data class ProcessingPlan(
     val jobId: UUID,
     val transforms: List<NormalizedTransform>,

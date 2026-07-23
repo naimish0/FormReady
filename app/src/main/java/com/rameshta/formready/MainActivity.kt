@@ -17,6 +17,7 @@ import com.rameshta.formready.feature.pdf.PdfViewModel
 import com.rameshta.formready.feature.presets.PresetsViewModel
 import com.rameshta.formready.feature.signature.SignatureViewModel
 import com.rameshta.formready.feature.scanner.ScannerViewModel
+import com.rameshta.formready.feature.batch.BatchViewModel
 import com.rameshta.formready.ui.FormReadyApp
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -28,6 +29,7 @@ class MainActivity : ComponentActivity() {
     private val pdfViewModel: PdfViewModel by viewModels()
     private val presetsViewModel: PresetsViewModel by viewModels()
     private val scannerViewModel: ScannerViewModel by viewModels()
+    private val batchViewModel: BatchViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,6 +64,7 @@ class MainActivity : ComponentActivity() {
                     pdfViewModel = pdfViewModel,
                     presetsViewModel = presetsViewModel,
                     scannerViewModel = scannerViewModel,
+                    batchViewModel = batchViewModel,
                     recentJobs = state.recentJobs,
                     recentArtifactsByJob = state.recentArtifactsByJob,
                     onJobFavourite = viewModel::setJobFavourite,

@@ -135,14 +135,22 @@ Use the Phase 1 branch and PR pattern for every numbered phase:
   - Verification on 2026-07-23: 29 unit tests, Android-test source compilation, `lintDebug`,
     `assembleDebug`, minified/R8 `bundleRelease`, Bundletool validation, universal APK 16 KB ZIP
     alignment, and native ELF inspection passed. No connected device was available.
-- [ ] Phase 9 — Bounded batch processing
+- [x] Phase 9 — Bounded batch processing
+  - A free batch accepts up to 10 Photo Picker images and 200 MiB combined input, applies one exact
+    JPEG/PNG requirement set, and creates normal independently validated photo jobs.
+  - WorkManager chains stable job UUIDs strictly in order. An item failure remains visible without
+    blocking later work; users can cancel the chain, retry only failed retained sources, and export
+    validated successes to a generated-name ZIP through Storage Access Framework.
+  - Verification on 2026-07-23: 32 unit tests, Android-test source compilation, `lintDebug`,
+    `assembleDebug`, minified/R8 `bundleRelease`, Bundletool validation, universal APK 16 KB ZIP
+    alignment, and 64-bit ELF inspection passed. No connected device was available.
 - [ ] Phase 10 — Optional lifetime Pro purchase
 
 ## Next-run handoff
 
 The user commissioned the complete post-v1 roadmap on 2026-07-23. Continue automatically through
 Phases 6–10 using the per-phase Git workflow above. Complete, verify, publish, and merge exactly one
-phase before creating the next phase branch. Phase 9 is the current phase.
+phase before creating the next phase branch. Phase 10 is the next phase after Phase 9 merges.
 
 ## 2026-07-23 single-module conversion checkpoint
 

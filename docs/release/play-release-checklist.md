@@ -32,6 +32,8 @@ Play Console action.
   fallback, exact export and 4×6/A4 physical print-sheet checks on a reference device.
 - [ ] Run synthetic Phase 8 merge/split/reorder/rotate/delete fixtures with text, vectors, images,
   links, annotations, malformed files, low storage, cancellation, and 100-page bounds on devices.
+- [ ] Run Phase 9 10-item ordering, first/middle failure continuation, cancellation, process
+  recreation, 200 MiB rejection, low-storage and ZIP-content checks on API 24 and API 36 devices.
 - [ ] Validate the final signed AAB and Play-generated device APK set using the upload key/Play App
   Signing configuration.
 

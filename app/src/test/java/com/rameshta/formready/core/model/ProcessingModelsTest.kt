@@ -94,4 +94,24 @@ class ProcessingModelsTest {
             IdPhotoOptions(maskStrokes = List(501) { stroke })
         }
     }
+
+    @Test
+    fun batchRequirementsAreBoundedAndRejectPdfOutput() {
+        val requirements = BatchRequirements(
+            widthPx = 600,
+            heightPx = 800,
+            maximumBytes = 200_000L,
+            dpi = 300,
+            outputFormat = OutputFormat.JPEG,
+            cropMode = CropMode.CROP_FILL,
+        )
+
+        assertEquals(200_000L, requirements.maximumBytes)
+        assertThrows(IllegalArgumentException::class.java) {
+            requirements.copy(widthPx = 20_001)
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            requirements.copy(outputFormat = OutputFormat.PDF)
+        }
+    }
 }

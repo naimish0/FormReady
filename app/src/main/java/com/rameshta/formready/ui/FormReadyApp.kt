@@ -34,6 +34,8 @@ import com.rameshta.formready.feature.scanner.ScannerRoute
 import com.rameshta.formready.feature.scanner.ScannerViewModel
 import com.rameshta.formready.feature.signature.SignatureRoute
 import com.rameshta.formready.feature.signature.SignatureViewModel
+import com.rameshta.formready.feature.batch.BatchRoute
+import com.rameshta.formready.feature.batch.BatchViewModel
 import com.rameshta.formready.core.model.ProcessingJob
 
 private enum class TopLevelDestination(
@@ -59,6 +61,7 @@ fun FormReadyApp(
     pdfViewModel: PdfViewModel,
     presetsViewModel: PresetsViewModel,
     scannerViewModel: ScannerViewModel,
+    batchViewModel: BatchViewModel,
     recentJobs: List<ProcessingJob>,
     recentArtifactsByJob: Map<String, com.rameshta.formready.core.model.OutputArtifact>,
     onJobFavourite: (ProcessingJob, Boolean) -> Unit,
@@ -77,7 +80,7 @@ fun FormReadyApp(
         bottomBar = {
             if (
                 currentDestination?.route !in
-                    setOf(PHOTO_ROUTE, SIGNATURE_ROUTE, PDF_ROUTE, SCANNER_ROUTE)
+                    setOf(PHOTO_ROUTE, SIGNATURE_ROUTE, PDF_ROUTE, SCANNER_ROUTE, BATCH_ROUTE)
             ) {
                 NavigationBar {
                     TopLevelDestination.entries.forEach { destination ->
@@ -125,6 +128,7 @@ fun FormReadyApp(
                             photoViewModel.enableIdPhotoMode()
                             navController.navigate(PHOTO_ROUTE)
                         },
+                        onPrepareBatch = { navController.navigate(BATCH_ROUTE) },
                     )
                 }
                 composable(TopLevelDestination.PRESETS.route) {
@@ -192,6 +196,12 @@ fun FormReadyApp(
                         viewModel = scannerViewModel,
                     )
                 }
+                composable(BATCH_ROUTE) {
+                    BatchRoute(
+                        onBack = { navController.popBackStack() },
+                        viewModel = batchViewModel,
+                    )
+                }
             }
         }
     }
@@ -201,3 +211,4 @@ private const val PHOTO_ROUTE = "photo"
 private const val SIGNATURE_ROUTE = "signature"
 private const val PDF_ROUTE = "pdf"
 private const val SCANNER_ROUTE = "scanner"
+private const val BATCH_ROUTE = "batch"
