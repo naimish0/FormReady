@@ -38,6 +38,8 @@ import com.rameshta.formready.core.data.settings.ThemePreference
 import com.rameshta.formready.core.data.settings.UserSettings
 import com.rameshta.formready.core.monetization.ProState
 import com.rameshta.formready.core.monetization.ProStatus
+import com.rameshta.formready.ui.component.BeginnerGuidanceCard
+import com.rameshta.formready.ui.component.OptionalSection
 
 @Composable
 fun SettingsScreen(
@@ -88,6 +90,10 @@ fun SettingsScreen(
                 stringResource(R.string.settings_title),
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.semantics { heading() },
+            )
+            BeginnerGuidanceCard(
+                title = stringResource(R.string.settings_beginner_title),
+                body = stringResource(R.string.settings_beginner_help),
             )
         }
         item {
@@ -168,61 +174,72 @@ fun SettingsScreen(
             }
         }
         item {
-            ToggleRow(stringResource(R.string.settings_quality_guard), settings.qualityGuardEnabled) {
-                onSettingsChanged { copy(qualityGuardEnabled = it) }
+            OptionalSection(
+                title = stringResource(R.string.settings_privacy_options_title),
+                summary = stringResource(R.string.settings_privacy_options_help),
+            ) {
+                ToggleRow(
+                    stringResource(R.string.settings_quality_guard),
+                    settings.qualityGuardEnabled,
+                ) {
+                    onSettingsChanged { copy(qualityGuardEnabled = it) }
+                }
+                ToggleRow(
+                    stringResource(R.string.settings_safety_margin),
+                    settings.safetyMarginEnabled,
+                ) {
+                    onSettingsChanged { copy(safetyMarginEnabled = it) }
+                }
+                ToggleRow(
+                    stringResource(R.string.settings_remove_metadata),
+                    settings.removeMetadataByDefault,
+                ) { onSettingsChanged { copy(removeMetadataByDefault = it) } }
+                ToggleRow(
+                    stringResource(R.string.settings_history_enabled),
+                    settings.historyEnabled,
+                ) {
+                    onSettingsChanged { copy(historyEnabled = it) }
+                }
+                ToggleRow(
+                    stringResource(R.string.settings_thumbnails),
+                    settings.thumbnailsEnabled,
+                ) {
+                    onSettingsChanged { copy(thumbnailsEnabled = it) }
+                }
+                ToggleRow(
+                    stringResource(R.string.settings_auto_cleanup),
+                    settings.automaticCleanupEnabled,
+                ) { onSettingsChanged { copy(automaticCleanupEnabled = it) } }
+                ToggleRow(
+                    stringResource(R.string.settings_privacy_mode),
+                    settings.privacyModeEnabled,
+                ) { onSettingsChanged { copy(privacyModeEnabled = it) } }
+                ToggleRow(
+                    stringResource(R.string.settings_reduced_motion),
+                    settings.reducedMotion,
+                ) {
+                    onSettingsChanged { copy(reducedMotion = it) }
+                }
             }
         }
         item {
-            ToggleRow(stringResource(R.string.settings_safety_margin), settings.safetyMarginEnabled) {
-                onSettingsChanged { copy(safetyMarginEnabled = it) }
-            }
-        }
-        item {
-            ToggleRow(
-                stringResource(R.string.settings_remove_metadata),
-                settings.removeMetadataByDefault,
-            ) { onSettingsChanged { copy(removeMetadataByDefault = it) } }
-        }
-        item {
-            ToggleRow(stringResource(R.string.settings_history_enabled), settings.historyEnabled) {
-                onSettingsChanged { copy(historyEnabled = it) }
-            }
-        }
-        item {
-            ToggleRow(stringResource(R.string.settings_thumbnails), settings.thumbnailsEnabled) {
-                onSettingsChanged { copy(thumbnailsEnabled = it) }
-            }
-        }
-        item {
-            ToggleRow(
-                stringResource(R.string.settings_auto_cleanup),
-                settings.automaticCleanupEnabled,
-            ) { onSettingsChanged { copy(automaticCleanupEnabled = it) } }
-        }
-        item {
-            ToggleRow(
-                stringResource(R.string.settings_privacy_mode),
-                settings.privacyModeEnabled,
-            ) { onSettingsChanged { copy(privacyModeEnabled = it) } }
-        }
-        item {
-            ToggleRow(stringResource(R.string.settings_reduced_motion), settings.reducedMotion) {
-                onSettingsChanged { copy(reducedMotion = it) }
-            }
-        }
-        item {
-            Text(
-                stringResource(R.string.settings_privacy_summary),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Button(onClick = { pendingAction = SettingsDestructiveAction.CLEAR_HISTORY }) {
-                Text(stringResource(R.string.settings_clear_history))
-            }
-            Button(onClick = { pendingAction = SettingsDestructiveAction.CLEAR_TEMPORARY }) {
-                Text(stringResource(R.string.settings_clear_temporary))
-            }
-            Button(onClick = { pendingAction = SettingsDestructiveAction.RESTORE_DEFAULTS }) {
-                Text(stringResource(R.string.settings_restore_defaults))
+            OptionalSection(
+                title = stringResource(R.string.settings_advanced_title),
+                summary = stringResource(R.string.settings_advanced_help),
+            ) {
+                Text(
+                    stringResource(R.string.settings_privacy_summary),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Button(onClick = { pendingAction = SettingsDestructiveAction.CLEAR_HISTORY }) {
+                    Text(stringResource(R.string.settings_clear_history))
+                }
+                Button(onClick = { pendingAction = SettingsDestructiveAction.CLEAR_TEMPORARY }) {
+                    Text(stringResource(R.string.settings_clear_temporary))
+                }
+                Button(onClick = { pendingAction = SettingsDestructiveAction.RESTORE_DEFAULTS }) {
+                    Text(stringResource(R.string.settings_restore_defaults))
+                }
             }
         }
         if (proState.isConfigured) {
@@ -276,32 +293,36 @@ fun SettingsScreen(
             }
         }
         item {
-            SettingHeading(stringResource(R.string.settings_about))
-            Text(stringResource(R.string.settings_version, versionName))
-            Text(stringResource(R.string.settings_licenses_summary))
-            if (privacyPolicyUrl.isNotBlank()) {
+            OptionalSection(
+                title = stringResource(R.string.settings_support_options_title),
+                summary = stringResource(R.string.settings_support_options_help),
+            ) {
+                Text(stringResource(R.string.settings_version, versionName))
+                Text(stringResource(R.string.settings_licenses_summary))
+                if (privacyPolicyUrl.isNotBlank()) {
+                    Button(onClick = {
+                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(privacyPolicyUrl)))
+                    }) {
+                        Text(stringResource(R.string.settings_privacy_policy))
+                    }
+                } else {
+                    Text(stringResource(R.string.settings_privacy_policy_pending))
+                }
                 Button(onClick = {
-                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(privacyPolicyUrl)))
+                    diagnostics.launch("formready-diagnostics.txt")
+                }) { Text(stringResource(R.string.settings_export_diagnostics)) }
+                Button(onClick = {
+                    runCatching {
+                        context.startActivity(
+                            Intent(
+                                Intent.ACTION_SENDTO,
+                                Uri.parse("mailto:naimish.app@gmail.com"),
+                            ),
+                        )
+                    }
                 }) {
-                    Text(stringResource(R.string.settings_privacy_policy))
+                    Text(stringResource(R.string.settings_support))
                 }
-            } else {
-                Text(stringResource(R.string.settings_privacy_policy_pending))
-            }
-            Button(onClick = {
-                diagnostics.launch("formready-diagnostics.txt")
-            }) { Text(stringResource(R.string.settings_export_diagnostics)) }
-            Button(onClick = {
-                runCatching {
-                    context.startActivity(
-                        Intent(
-                            Intent.ACTION_SENDTO,
-                            Uri.parse("mailto:naimish.app@gmail.com"),
-                        ),
-                    )
-                }
-            }) {
-                Text(stringResource(R.string.settings_support))
             }
         }
     }

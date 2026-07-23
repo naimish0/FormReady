@@ -39,6 +39,8 @@ import com.rameshta.formready.R
 import com.rameshta.formready.core.model.CropMode
 import com.rameshta.formready.core.model.JobStatus
 import com.rameshta.formready.core.model.OutputFormat
+import com.rameshta.formready.ui.component.BeginnerGuidanceCard
+import com.rameshta.formready.ui.component.OptionalSection
 import com.rameshta.formready.ui.format.readableFileSize
 import com.rameshta.formready.ui.format.userFacingError
 
@@ -78,6 +80,12 @@ fun BatchRoute(
         }
         item {
             Text(stringResource(R.string.batch_privacy_and_limit, state.itemLimit))
+        }
+        item {
+            BeginnerGuidanceCard(
+                title = stringResource(R.string.batch_beginner_title),
+                body = stringResource(R.string.batch_beginner_help),
+            )
         }
         item {
             Card(Modifier.fillMaxWidth()) {
@@ -139,21 +147,30 @@ fun BatchRoute(
                             )
                         }
                     }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(
-                            selected = state.cropMode == CropMode.CROP_FILL,
-                            onClick = { viewModel.setCropMode(CropMode.CROP_FILL) },
-                            enabled = !state.isRunning,
-                            label = { Text(stringResource(R.string.photo_crop_fill)) },
-                        )
-                        FilterChip(
-                            selected = state.cropMode == CropMode.FIT_PAD,
-                            onClick = { viewModel.setCropMode(CropMode.FIT_PAD) },
-                            enabled = !state.isRunning,
-                            label = { Text(stringResource(R.string.photo_fit_pad)) },
-                        )
+                    Text(
+                        stringResource(R.string.image_format_help),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    OptionalSection(
+                        title = stringResource(R.string.batch_crop_optional_title),
+                        summary = stringResource(R.string.batch_crop_optional_help),
+                    ) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            FilterChip(
+                                selected = state.cropMode == CropMode.CROP_FILL,
+                                onClick = { viewModel.setCropMode(CropMode.CROP_FILL) },
+                                enabled = !state.isRunning,
+                                label = { Text(stringResource(R.string.photo_crop_fill)) },
+                            )
+                            FilterChip(
+                                selected = state.cropMode == CropMode.FIT_PAD,
+                                onClick = { viewModel.setCropMode(CropMode.FIT_PAD) },
+                                enabled = !state.isRunning,
+                                label = { Text(stringResource(R.string.photo_fit_pad)) },
+                            )
+                        }
+                        Text(stringResource(R.string.batch_center_crop_notice))
                     }
-                    Text(stringResource(R.string.batch_center_crop_notice))
                 }
             }
         }

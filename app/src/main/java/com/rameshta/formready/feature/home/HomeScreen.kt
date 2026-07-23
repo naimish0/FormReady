@@ -20,6 +20,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.rameshta.formready.R
+import com.rameshta.formready.ui.component.BeginnerGuidanceCard
 
 @Composable
 fun HomeScreen(
@@ -77,6 +78,17 @@ fun HomeScreen(
                     )
                 }
             }
+        }
+        item {
+            Text(
+                text = stringResource(R.string.home_choose_heading),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.semantics { heading() },
+            )
+            BeginnerGuidanceCard(
+                title = stringResource(R.string.home_start_title),
+                body = stringResource(R.string.home_choose_help),
+            )
         }
         items(capabilities) { capability ->
             CapabilityCard(

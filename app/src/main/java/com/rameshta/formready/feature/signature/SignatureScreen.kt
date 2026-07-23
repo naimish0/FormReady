@@ -60,6 +60,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rameshta.formready.R
 import com.rameshta.formready.core.model.JobStatus
 import com.rameshta.formready.core.model.OutputFormat
+import com.rameshta.formready.ui.component.BeginnerGuidanceCard
+import com.rameshta.formready.ui.component.OptionalSection
 import com.rameshta.formready.ui.format.readableFileSize
 import com.rameshta.formready.ui.format.readableValidationValue
 import com.rameshta.formready.ui.format.userFacingError
@@ -211,6 +213,12 @@ private fun SignatureScreen(
             )
         }
         item {
+            BeginnerGuidanceCard(
+                title = stringResource(R.string.signature_beginner_title),
+                body = stringResource(R.string.signature_beginner_help),
+            )
+        }
+        item {
             SectionCard(stringResource(R.string.signature_input)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(onClick = onChoose) { Text(stringResource(R.string.signature_gallery)) }
@@ -323,146 +331,155 @@ private fun SignatureScreen(
                         label = { Text("JPEG") },
                     )
                 }
+                Text(
+                    stringResource(R.string.image_format_help),
+                    style = MaterialTheme.typography.bodySmall,
+                )
             }
         }
         item {
-            SectionCard(stringResource(R.string.signature_cleanup)) {
-                ToggleRow(
-                    stringResource(R.string.signature_grayscale),
-                    state.grayscale,
-                    viewModel::setGrayscale,
-                )
-                ToggleRow(
-                    stringResource(R.string.signature_clean_paper),
-                    state.cleanPaper,
-                    viewModel::setCleanPaper,
-                )
-                ToggleRow(
-                    stringResource(R.string.signature_remove_speckles),
-                    state.removeSpeckles,
-                    viewModel::setRemoveSpeckles,
-                )
-                ToggleRow(
-                    stringResource(R.string.signature_auto_crop),
-                    state.autoCrop,
-                    viewModel::setAutoCrop,
-                )
-                ToggleRow(
-                    stringResource(R.string.signature_transparent),
-                    state.transparentBackground,
-                    viewModel::setTransparentBackground,
-                    enabled = state.outputFormat == OutputFormat.PNG,
-                )
-                LabelledSlider(
-                    stringResource(R.string.signature_threshold, state.threshold),
-                    state.threshold.toFloat(),
-                    80f..245f,
-                ) { viewModel.setThreshold(it.roundToInt()) }
-                LabelledSlider(
-                    stringResource(R.string.signature_contrast, state.contrastPercent),
-                    state.contrastPercent.toFloat(),
-                    50f..250f,
-                ) { viewModel.setContrast(it.roundToInt()) }
-                LabelledSlider(
-                    stringResource(R.string.signature_safe_margin, state.safeMarginPercent),
-                    state.safeMarginPercent.toFloat(),
-                    0f..25f,
-                ) { viewModel.setSafeMargin(it.roundToInt()) }
-                LabelledSlider(
-                    stringResource(R.string.signature_padding, state.paddingPercent),
-                    state.paddingPercent.toFloat(),
-                    0f..30f,
-                ) { viewModel.setPadding(it.roundToInt()) }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(
-                        selected = state.inkArgb == SignatureViewModel.INK_BLACK,
-                        onClick = { viewModel.setInkColour(SignatureViewModel.INK_BLACK) },
-                        label = { Text(stringResource(R.string.signature_black_ink)) },
+            OptionalSection(
+                title = stringResource(R.string.signature_cleanup_optional_title),
+                summary = stringResource(R.string.signature_cleanup_optional_help),
+            ) {
+                SectionCard(stringResource(R.string.signature_cleanup)) {
+                    ToggleRow(
+                        stringResource(R.string.signature_grayscale),
+                        state.grayscale,
+                        viewModel::setGrayscale,
                     )
-                    FilterChip(
-                        selected = state.inkArgb == SignatureViewModel.INK_BLUE,
-                        onClick = { viewModel.setInkColour(SignatureViewModel.INK_BLUE) },
-                        label = { Text(stringResource(R.string.signature_blue_ink)) },
+                    ToggleRow(
+                        stringResource(R.string.signature_clean_paper),
+                        state.cleanPaper,
+                        viewModel::setCleanPaper,
                     )
-                }
-                Text(stringResource(R.string.signature_manual_crop))
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    CropField(
-                        state.cropLeftPercent,
-                        stringResource(R.string.signature_crop_left),
-                        Modifier.weight(1f),
-                    ) {
-                        viewModel.setCrop(
-                            it,
-                            state.cropTopPercent,
-                            state.cropRightPercent,
-                            state.cropBottomPercent,
+                    ToggleRow(
+                        stringResource(R.string.signature_remove_speckles),
+                        state.removeSpeckles,
+                        viewModel::setRemoveSpeckles,
+                    )
+                    ToggleRow(
+                        stringResource(R.string.signature_auto_crop),
+                        state.autoCrop,
+                        viewModel::setAutoCrop,
+                    )
+                    ToggleRow(
+                        stringResource(R.string.signature_transparent),
+                        state.transparentBackground,
+                        viewModel::setTransparentBackground,
+                        enabled = state.outputFormat == OutputFormat.PNG,
+                    )
+                    LabelledSlider(
+                        stringResource(R.string.signature_threshold, state.threshold),
+                        state.threshold.toFloat(),
+                        80f..245f,
+                    ) { viewModel.setThreshold(it.roundToInt()) }
+                    LabelledSlider(
+                        stringResource(R.string.signature_contrast, state.contrastPercent),
+                        state.contrastPercent.toFloat(),
+                        50f..250f,
+                    ) { viewModel.setContrast(it.roundToInt()) }
+                    LabelledSlider(
+                        stringResource(R.string.signature_safe_margin, state.safeMarginPercent),
+                        state.safeMarginPercent.toFloat(),
+                        0f..25f,
+                    ) { viewModel.setSafeMargin(it.roundToInt()) }
+                    LabelledSlider(
+                        stringResource(R.string.signature_padding, state.paddingPercent),
+                        state.paddingPercent.toFloat(),
+                        0f..30f,
+                    ) { viewModel.setPadding(it.roundToInt()) }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(
+                            selected = state.inkArgb == SignatureViewModel.INK_BLACK,
+                            onClick = { viewModel.setInkColour(SignatureViewModel.INK_BLACK) },
+                            label = { Text(stringResource(R.string.signature_black_ink)) },
+                        )
+                        FilterChip(
+                            selected = state.inkArgb == SignatureViewModel.INK_BLUE,
+                            onClick = { viewModel.setInkColour(SignatureViewModel.INK_BLUE) },
+                            label = { Text(stringResource(R.string.signature_blue_ink)) },
                         )
                     }
-                    CropField(
-                        state.cropTopPercent,
-                        stringResource(R.string.signature_crop_top),
-                        Modifier.weight(1f),
-                    ) {
-                        viewModel.setCrop(
+                    Text(stringResource(R.string.signature_manual_crop))
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        CropField(
                             state.cropLeftPercent,
-                            it,
-                            state.cropRightPercent,
-                            state.cropBottomPercent,
-                        )
-                    }
-                    CropField(
-                        state.cropRightPercent,
-                        stringResource(R.string.signature_crop_right),
-                        Modifier.weight(1f),
-                    ) {
-                        viewModel.setCrop(
-                            state.cropLeftPercent,
+                            stringResource(R.string.signature_crop_left),
+                            Modifier.weight(1f),
+                        ) {
+                            viewModel.setCrop(
+                                it,
+                                state.cropTopPercent,
+                                state.cropRightPercent,
+                                state.cropBottomPercent,
+                            )
+                        }
+                        CropField(
                             state.cropTopPercent,
-                            it,
-                            state.cropBottomPercent,
-                        )
-                    }
-                    CropField(
-                        state.cropBottomPercent,
-                        stringResource(R.string.signature_crop_bottom),
-                        Modifier.weight(1f),
-                    ) {
-                        viewModel.setCrop(
-                            state.cropLeftPercent,
-                            state.cropTopPercent,
+                            stringResource(R.string.signature_crop_top),
+                            Modifier.weight(1f),
+                        ) {
+                            viewModel.setCrop(
+                                state.cropLeftPercent,
+                                it,
+                                state.cropRightPercent,
+                                state.cropBottomPercent,
+                            )
+                        }
+                        CropField(
                             state.cropRightPercent,
-                            it,
-                        )
+                            stringResource(R.string.signature_crop_right),
+                            Modifier.weight(1f),
+                        ) {
+                            viewModel.setCrop(
+                                state.cropLeftPercent,
+                                state.cropTopPercent,
+                                it,
+                                state.cropBottomPercent,
+                            )
+                        }
+                        CropField(
+                            state.cropBottomPercent,
+                            stringResource(R.string.signature_crop_bottom),
+                            Modifier.weight(1f),
+                        ) {
+                            viewModel.setCrop(
+                                state.cropLeftPercent,
+                                state.cropTopPercent,
+                                state.cropRightPercent,
+                                it,
+                            )
+                        }
                     }
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    OutlinedButton(onClick = { viewModel.nudge(-0.1f, 0f) }) {
-                        Text(stringResource(R.string.signature_move_left))
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        OutlinedButton(onClick = { viewModel.nudge(-0.1f, 0f) }) {
+                            Text(stringResource(R.string.signature_move_left))
+                        }
+                        OutlinedButton(onClick = { viewModel.nudge(0.1f, 0f) }) {
+                            Text(stringResource(R.string.signature_move_right))
+                        }
                     }
-                    OutlinedButton(onClick = { viewModel.nudge(0.1f, 0f) }) {
-                        Text(stringResource(R.string.signature_move_right))
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        OutlinedButton(onClick = { viewModel.nudge(0f, -0.1f) }) {
+                            Text(stringResource(R.string.signature_move_up))
+                        }
+                        OutlinedButton(onClick = { viewModel.nudge(0f, 0.1f) }) {
+                            Text(stringResource(R.string.signature_move_down))
+                        }
                     }
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    OutlinedButton(onClick = { viewModel.nudge(0f, -0.1f) }) {
-                        Text(stringResource(R.string.signature_move_up))
+                    OutlinedButton(onClick = viewModel::rotateClockwise) {
+                        Text(stringResource(R.string.signature_rotate))
                     }
-                    OutlinedButton(onClick = { viewModel.nudge(0f, 0.1f) }) {
-                        Text(stringResource(R.string.signature_move_down))
+                    LabelledSlider(
+                        stringResource(R.string.signature_deskew, state.deskewDegrees),
+                        state.deskewDegrees,
+                        -10f..10f,
+                        viewModel::setDeskew,
+                    )
+                    OutlinedButton(onClick = viewModel::resetCleanup) {
+                        Text(stringResource(R.string.signature_restore))
                     }
-                }
-                OutlinedButton(onClick = viewModel::rotateClockwise) {
-                    Text(stringResource(R.string.signature_rotate))
-                }
-                LabelledSlider(
-                    stringResource(R.string.signature_deskew, state.deskewDegrees),
-                    state.deskewDegrees,
-                    -10f..10f,
-                    viewModel::setDeskew,
-                )
-                OutlinedButton(onClick = viewModel::resetCleanup) {
-                    Text(stringResource(R.string.signature_restore))
                 }
             }
         }

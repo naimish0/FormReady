@@ -42,6 +42,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rameshta.formready.R
 import com.rameshta.formready.core.model.JobStatus
 import com.rameshta.formready.core.model.ValidationOutcome
+import com.rameshta.formready.ui.component.BeginnerGuidanceCard
+import com.rameshta.formready.ui.component.OptionalSection
 import com.rameshta.formready.ui.format.readableFileSize
 import com.rameshta.formready.ui.format.readableValidationValue
 import com.rameshta.formready.ui.format.userFacingError
@@ -96,6 +98,12 @@ fun PdfRoute(
         }
         item { Text(stringResource(R.string.pdf_privacy)) }
         item {
+            BeginnerGuidanceCard(
+                title = stringResource(R.string.pdf_beginner_title),
+                body = stringResource(R.string.pdf_beginner_help),
+            )
+        }
+        item {
             Section(stringResource(R.string.pdf_input)) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(onClick = { picker.launch(arrayOf("application/pdf")) }) {
@@ -127,35 +135,40 @@ fun PdfRoute(
                             metadata.pageCount,
                         ),
                     )
-                    metadata.pages.forEachIndexed { index, page ->
+                    OptionalSection(
+                        title = stringResource(R.string.pdf_details_optional_title),
+                        summary = stringResource(R.string.pdf_details_optional_help),
+                    ) {
+                        metadata.pages.forEachIndexed { index, page ->
+                            Text(
+                                stringResource(
+                                    R.string.pdf_page_summary,
+                                    index + 1,
+                                    page.widthPoints,
+                                    page.heightPoints,
+                                    if (page.isLandscape) {
+                                        stringResource(R.string.pdf_landscape)
+                                    } else {
+                                        stringResource(R.string.pdf_portrait)
+                                    },
+                                ),
+                            )
+                        }
                         Text(
                             stringResource(
-                                R.string.pdf_page_summary,
-                                index + 1,
-                                page.widthPoints,
-                                page.heightPoints,
-                                if (page.isLandscape) {
-                                    stringResource(R.string.pdf_landscape)
+                                R.string.pdf_encryption_status,
+                                if (metadata.encrypted) {
+                                    stringResource(R.string.pdf_encrypted)
                                 } else {
-                                    stringResource(R.string.pdf_portrait)
+                                    stringResource(R.string.pdf_not_encrypted)
                                 },
                             ),
                         )
+                        Text(featureText(R.string.pdf_forms, metadata.hasForms))
+                        Text(featureText(R.string.pdf_links, metadata.hasLinks))
+                        Text(featureText(R.string.pdf_annotations, metadata.hasAnnotations))
+                        Text(featureText(R.string.pdf_signatures, metadata.hasDigitalSignatures))
                     }
-                    Text(
-                        stringResource(
-                            R.string.pdf_encryption_status,
-                            if (metadata.encrypted) {
-                                stringResource(R.string.pdf_encrypted)
-                            } else {
-                                stringResource(R.string.pdf_not_encrypted)
-                            },
-                        ),
-                    )
-                    Text(featureText(R.string.pdf_forms, metadata.hasForms))
-                    Text(featureText(R.string.pdf_links, metadata.hasLinks))
-                    Text(featureText(R.string.pdf_annotations, metadata.hasAnnotations))
-                    Text(featureText(R.string.pdf_signatures, metadata.hasDigitalSignatures))
                     if (!state.isOperationMode) {
                         OutlinedTextField(
                             value = state.maximumPagesText,
