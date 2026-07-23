@@ -24,4 +24,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "FormReady"
 include(":app")
- 
+include(":core:model")
+include(":core:data")
+include(":core:designsystem")
+include(":core:processing")

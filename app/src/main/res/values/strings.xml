@@ -1,3 +1,30 @@
 <resources>
     <string name="app_name">FormReady</string>
+    <string name="navigation_home">Home</string>
+    <string name="navigation_presets">Presets</string>
+    <string name="navigation_history">History</string>
+    <string name="navigation_settings">Settings</string>
+    <string name="home_title">Prepare files with confidence</string>
+    <string name="home_subtitle">FormReady checks measurable upload requirements against the file you actually export.</string>
+    <string name="privacy_card_title">Private by design</string>
+    <string name="privacy_card_body">Processing stays on this device. Files go only where you choose.</string>
+    <string name="capability_photo_title">Photos</string>
+    <string name="capability_photo_description">Exact pixels, format, dimensions, DPI and file-size requirements.</string>
+    <string name="capability_signature_title">Signatures</string>
+    <string name="capability_signature_description">Clean, crop and fit a signature without stretching its strokes.</string>
+    <string name="capability_pdf_title">PDFs</string>
+    <string name="capability_pdf_description">Inspect page and size requirements before choosing a compatible export.</string>
+    <string name="independent_disclaimer">FormReady is an independent file-preparation utility and is not affiliated with any government, examination body, employer, or application portal. Always confirm the destination’s current requirements.</string>
+    <string name="presets_title">Presets</string>
+    <string name="presets_empty">No presets have been added yet. Verified presets will always show their source and last-checked date.</string>
+    <string name="history_title">History</string>
+    <string name="history_empty">Completed on-device jobs will appear here when history is enabled.</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_theme">Theme</string>
+    <string name="theme_system">System default</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="settings_dynamic_colour">Use device colours</string>
+    <string name="settings_dynamic_colour_description">Use your device palette while keeping validation colours consistent.</string>
+    <string name="settings_privacy_summary">Metadata removal, local history, privacy mode and cleanup controls will remain privacy-first defaults.</string>
 </resources>
