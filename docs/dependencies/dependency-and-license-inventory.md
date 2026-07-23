@@ -1,6 +1,6 @@
 # Dependency and licence inventory
 
-Direct production dependencies through Phase 4:
+Direct production dependencies through Phase 6:
 
 | Dependency | Version | Purpose | Licence/data behaviour |
 |---|---:|---|---|
@@ -20,14 +20,17 @@ Direct production dependencies through Phase 4:
 | Dagger/Hilt | 2.60.1 | dependency injection | Apache 2.0; no network |
 | AndroidX Hilt | 1.4.0 | WorkManager integration | Apache 2.0; no network |
 | kotlinx.coroutines | 1.10.2 | structured concurrency | Apache 2.0; no network |
+| ML Kit Document Scanner | 16.0.0 | on-device enhanced multi-page scan UI | Google APIs/ML Kit terms; dynamic module delivery and SDK metrics |
+| ML Kit Text Recognition | 16.0.1 | bundled Latin OCR | Google APIs/ML Kit terms; on-device content processing and SDK metrics |
+| ML Kit Text Recognition Devanagari | 16.0.1 | bundled Devanagari OCR | Google APIs/ML Kit terms; on-device content processing and SDK metrics |
 
 JUnit, AndroidX Test, Espresso, Compose test, WorkManager testing, and coroutines-test are
 test-only and Apache 2.0 except JUnit 4 (EPL 1.0).
 
 AndroidX Graphics Path and DataStore contribute small native libraries for the four packaged ABIs;
 Phase 5 universal-APK checks verified 16 KB ZIP and `0x4000` ELF segment alignment. No app-authored
-native library, ad/consent SDK, billing SDK, PDF engine, camera SDK, image loader, ML model,
-analytics SDK, or network client is shipped. PDF inspection, rendering, and
+native library, ad/consent SDK, billing SDK, PDF engine, camera SDK, image loader, or general
+network client is shipped. ML Kit adds bundled OCR native/model assets and SDK metrics. PDF inspection, rendering, and
 flattened generation use Android platform APIs rather than a third-party PDF engine. Signature capture delegates to an
 installed camera activity and therefore adds no camera dependency or permission. Re-run the
 licence and data-behaviour audit whenever the catalog changes.

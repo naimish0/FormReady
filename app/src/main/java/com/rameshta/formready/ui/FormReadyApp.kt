@@ -30,6 +30,8 @@ import com.rameshta.formready.feature.pdf.PdfViewModel
 import com.rameshta.formready.feature.presets.PresetsScreen
 import com.rameshta.formready.feature.presets.PresetsViewModel
 import com.rameshta.formready.feature.settings.SettingsScreen
+import com.rameshta.formready.feature.scanner.ScannerRoute
+import com.rameshta.formready.feature.scanner.ScannerViewModel
 import com.rameshta.formready.feature.signature.SignatureRoute
 import com.rameshta.formready.feature.signature.SignatureViewModel
 import com.rameshta.formready.core.model.ProcessingJob
@@ -56,6 +58,7 @@ fun FormReadyApp(
     signatureViewModel: SignatureViewModel,
     pdfViewModel: PdfViewModel,
     presetsViewModel: PresetsViewModel,
+    scannerViewModel: ScannerViewModel,
     recentJobs: List<ProcessingJob>,
     recentArtifactsByJob: Map<String, com.rameshta.formready.core.model.OutputArtifact>,
     onJobFavourite: (ProcessingJob, Boolean) -> Unit,
@@ -72,7 +75,10 @@ fun FormReadyApp(
         modifier = Modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            if (currentDestination?.route !in setOf(PHOTO_ROUTE, SIGNATURE_ROUTE, PDF_ROUTE)) {
+            if (
+                currentDestination?.route !in
+                    setOf(PHOTO_ROUTE, SIGNATURE_ROUTE, PDF_ROUTE, SCANNER_ROUTE)
+            ) {
                 NavigationBar {
                     TopLevelDestination.entries.forEach { destination ->
                     val selected = currentDestination?.hierarchy
@@ -111,6 +117,7 @@ fun FormReadyApp(
                         onPreparePhoto = { navController.navigate(PHOTO_ROUTE) },
                         onPrepareSignature = { navController.navigate(SIGNATURE_ROUTE) },
                         onPreparePdf = { navController.navigate(PDF_ROUTE) },
+                        onScanDocument = { navController.navigate(SCANNER_ROUTE) },
                     )
                 }
                 composable(TopLevelDestination.PRESETS.route) {
@@ -172,6 +179,12 @@ fun FormReadyApp(
                         viewModel = pdfViewModel,
                     )
                 }
+                composable(SCANNER_ROUTE) {
+                    ScannerRoute(
+                        onBack = { navController.popBackStack() },
+                        viewModel = scannerViewModel,
+                    )
+                }
             }
         }
     }
@@ -180,3 +193,4 @@ fun FormReadyApp(
 private const val PHOTO_ROUTE = "photo"
 private const val SIGNATURE_ROUTE = "signature"
 private const val PDF_ROUTE = "pdf"
+private const val SCANNER_ROUTE = "scanner"

@@ -8,5 +8,9 @@ Most runtime libraries are licensed under Apache License 2.0. JUnit 4 is test-on
 Public License 1.0. Source distributions and licence texts are available from the respective
 projects and Maven artifacts.
 
-No GPL/AGPL PDF engine, ML model, font, image asset pack, advertising/consent SDK, Billing SDK,
-analytics SDK, network client or commercial SDK is included.
+Phase 6 includes Google ML Kit Document Scanner and bundled Latin/Devanagari Text Recognition
+under the Google APIs and ML Kit terms. The scanner module is delivered through Google Play
+services; OCR model binaries are packaged in the app.
+
+No GPL/AGPL PDF engine, font/image asset pack, advertising/consent SDK, Billing SDK, general
+network client or app-authored analytics SDK is included.

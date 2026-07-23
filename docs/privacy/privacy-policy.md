@@ -7,7 +7,8 @@ FormReady is an independent, offline-first file-preparation utility. This policy
 
 ## Information FormReady processes
 
-FormReady processes only the photos, signature images, drawings, PDFs, requirements and settings
+FormReady processes only the photos, signature images, drawings, scanned pages, OCR text, PDFs,
+requirements and settings
 that you choose in the app. Processing occurs on your device. FormReady has no custom backend,
 account system, analytics, advertising SDK, billing SDK or remote AI service.
 
@@ -35,9 +36,15 @@ files.
 
 ## Permissions and network access
 
-The launch build requests no broad storage, camera, location, contacts, microphone, advertising-ID
-or Internet permission. Camera capture is delegated to a compatible installed camera app and uses
-a temporary app-private destination.
+The app requests no broad storage, camera, location, contacts, microphone or advertising-ID
+permission. Camera fallback is delegated to a compatible installed camera app and uses a
+temporary app-private destination.
+
+Enhanced scanning and OCR use Google ML Kit. Google states that input images and recognized text
+are processed on-device, while the SDK may contact Google for scanner-module delivery, fixes,
+model or hardware-accelerator compatibility, and diagnostic/usage metrics. ML Kit’s transitive
+components add Internet access. FormReady has no custom backend and does not send document content
+or OCR results to the developer.
 
 ## Diagnostics
 

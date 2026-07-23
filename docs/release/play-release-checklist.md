@@ -10,9 +10,9 @@ Play Console action.
 - [x] Unit tests, lint, debug assembly and minified/R8 release bundle pass.
 - [x] Room schema history and 1-to-3 migration test are committed.
 - [x] Release runtime dependencies and licences are inventoried.
-- [x] Merged release manifest is audited: only WorkManager wake/reboot and AndroidX
-  dynamic-receiver signature permissions remain.
-- [x] Backup and cleartext traffic are disabled; no broad storage, camera, Internet, Advertising ID,
+- [x] Phase 6 merged release manifest and ML Kit components audited; exact result is recorded in
+  `phase-6-validation.md`. Repeat against Play-generated APKs.
+- [x] Backup and cleartext traffic are disabled; no broad storage, camera, Advertising ID,
   notification, location, contacts, microphone or foreground-service permission is present.
 - [x] The universal APK’s transitive AndroidX Graphics Path and DataStore native libraries pass
   `zipalign -P 16`; every ELF `LOAD` segment reports `0x4000` alignment for arm64-v8a,
@@ -60,7 +60,8 @@ Android 16/API 36 from 31 August 2026; recheck the policy immediately before sub
 
 - [x] 1.0.0 decision: advertising disabled; `NoOpAdManager` only.
 - [x] Contains Ads: **No**; Advertising ID: **not used**; purchases: **none**.
-- [x] No Mobile Ads, UMP, Billing, analytics or network SDK/permission/configuration exists.
+- [x] No Mobile Ads, UMP, Billing or app-authored analytics exists. ML Kit is the sole
+  network-capable SDK family and must be disclosed.
 - [ ] If advertising is proposed later, treat it as a separate reviewed release with real IDs,
   official test IDs in debug, certified regional messages, privacy options, updated declarations,
   `app-ads.txt`, SDK inventory and ad-placement/frequency tests.

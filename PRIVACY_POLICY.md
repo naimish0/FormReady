@@ -19,9 +19,11 @@ exported elsewhere.
 
 ## Network and third parties
 
-The 1.0.0 launch build has no Internet permission, advertising SDK, analytics, cloud storage,
-remote AI or Billing. If a future release enables ads, consent, Billing or another transmitting
-SDK, this policy and the Play declarations must be updated before release.
+FormReady has no custom backend, advertising, cloud storage, remote AI or Billing. Enhanced
+document scanning and bundled OCR use Google ML Kit. Google states that document images and OCR
+results are processed on-device, while the SDK may contact Google for module delivery, fixes,
+model/accelerator compatibility, and diagnostic or usage metrics. The final Play Data Safety form
+must reflect Google’s current ML Kit disclosure.
 
 ## Security and retention
 

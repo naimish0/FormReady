@@ -79,3 +79,10 @@
 - Phone, 7-inch tablet, 10-inch tablet, landscape, and foldable layouts.
 
 Only deterministic synthetic fixtures may be used. Release evidence must record fixture hashes, device/API/RAM, cold/warm state, command, elapsed time, and pass/fail threshold.
+
+## Phase 6 reference run — 2026-07-23
+
+- Local JVM/lint/debug/release gates passed with 27 unit tests.
+- Bundletool and universal-APK 16 KB alignment checks passed; every 64-bit ML Kit OCR ELF load
+  segment uses `0x4000` alignment.
+- Scanner/OCR device execution remains open because no connected device was available.
