@@ -72,6 +72,8 @@ import com.rameshta.formready.ui.format.readableFileSize
 import com.rameshta.formready.ui.format.readableGuidance
 import com.rameshta.formready.ui.format.readableValidationValue
 import com.rameshta.formready.ui.format.userFacingError
+import com.rameshta.formready.ui.component.BeginnerGuidanceCard
+import com.rameshta.formready.ui.component.OptionalSection
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -148,6 +150,18 @@ fun PhotoRoute(
                     text = stringResource(R.string.photo_requirements_heading),
                     style = MaterialTheme.typography.headlineSmall,
                     modifier = Modifier.semantics { heading() },
+                )
+            }
+            item {
+                BeginnerGuidanceCard(
+                    title = stringResource(R.string.photo_beginner_title),
+                    body = stringResource(
+                        if (state.isIdPhotoMode) {
+                            R.string.id_photo_beginner_help
+                        } else {
+                            R.string.photo_beginner_help
+                        },
+                    ),
                 )
             }
             item {
@@ -244,7 +258,12 @@ fun PhotoRoute(
                 }
                 if (state.jobStatus == null) {
                     item {
-                        PhotoEditor(state = state, viewModel = viewModel)
+                        OptionalSection(
+                            title = stringResource(R.string.photo_optional_editor_title),
+                            summary = stringResource(R.string.photo_optional_editor_help),
+                        ) {
+                            PhotoEditor(state = state, viewModel = viewModel)
+                        }
                     }
                     item {
                         Button(
@@ -653,6 +672,10 @@ private fun RequirementsEditor(
                     label = { Text(stringResource(R.string.format_png)) },
                 )
             }
+            Text(
+                stringResource(R.string.image_format_help),
+                style = MaterialTheme.typography.bodySmall,
+            )
             NumberField(
                 value = state.dpiText,
                 onValueChange = viewModel::setDpi,

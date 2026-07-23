@@ -38,6 +38,8 @@ import com.rameshta.formready.core.model.OutputArtifact
 import com.rameshta.formready.core.model.ProcessingJob
 import com.rameshta.formready.core.model.Readiness
 import com.rameshta.formready.ui.component.EmptyStateScreen
+import com.rameshta.formready.ui.component.BeginnerGuidanceCard
+import com.rameshta.formready.ui.component.OptionalSection
 import com.rameshta.formready.ui.format.readableFileSize
 import com.rameshta.formready.ui.format.userFacingError
 import java.io.File
@@ -85,6 +87,10 @@ fun HistoryScreen(
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.semantics { heading() },
             )
+            BeginnerGuidanceCard(
+                title = stringResource(R.string.history_beginner_title),
+                body = stringResource(R.string.history_beginner_help),
+            )
             OutlinedTextField(
                 value = query,
                 onValueChange = { query = it.take(80) },
@@ -108,8 +114,13 @@ fun HistoryScreen(
                     )
                 }
             }
-            Button(onClick = { confirmClear = true }) {
-                Text(stringResource(R.string.history_clear))
+            OptionalSection(
+                title = stringResource(R.string.history_manage_title),
+                summary = stringResource(R.string.history_manage_help),
+            ) {
+                Button(onClick = { confirmClear = true }) {
+                    Text(stringResource(R.string.history_clear))
+                }
             }
         }
         items(filtered, key = { it.id }) { job ->

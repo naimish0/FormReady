@@ -49,6 +49,8 @@ import com.google.mlkit.vision.documentscanner.GmsDocumentScanning
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
 import com.rameshta.formready.R
 import com.rameshta.formready.core.processing.OcrScript
+import com.rameshta.formready.ui.component.BeginnerGuidanceCard
+import com.rameshta.formready.ui.component.OptionalSection
 import com.rameshta.formready.ui.format.userFacingError
 
 @Composable
@@ -168,6 +170,12 @@ private fun ScannerScreen(
             )
         }
         item {
+            BeginnerGuidanceCard(
+                title = stringResource(R.string.scanner_beginner_title),
+                body = stringResource(R.string.scanner_beginner_help),
+            )
+        }
+        item {
             Card {
                 Column(
                     Modifier.padding(16.dp),
@@ -252,16 +260,25 @@ private fun ScannerScreen(
             }
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = onLatinOcr, enabled = !state.isBusy) {
-                            Text(stringResource(R.string.scanner_ocr_latin))
-                        }
-                        OutlinedButton(onClick = onDevanagariOcr, enabled = !state.isBusy) {
-                            Text(stringResource(R.string.scanner_ocr_devanagari))
-                        }
-                    }
-                    Button(onClick = onSavePdf, enabled = !state.isBusy) {
+                    Button(
+                        onClick = onSavePdf,
+                        enabled = !state.isBusy,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
                         Text(stringResource(R.string.scanner_save_pdf))
+                    }
+                    OptionalSection(
+                        title = stringResource(R.string.scanner_text_optional_title),
+                        summary = stringResource(R.string.scanner_text_optional_help),
+                    ) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(onClick = onLatinOcr, enabled = !state.isBusy) {
+                                Text(stringResource(R.string.scanner_ocr_latin))
+                            }
+                            OutlinedButton(onClick = onDevanagariOcr, enabled = !state.isBusy) {
+                                Text(stringResource(R.string.scanner_ocr_devanagari))
+                            }
+                        }
                     }
                 }
             }

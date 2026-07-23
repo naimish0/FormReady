@@ -37,6 +37,15 @@ class FormReadyNavigationTest {
         check(composeRule.onAllNodesWithText("KiB").fetchSemanticsNodes().isEmpty())
         check(composeRule.onAllNodesWithText("MiB").fetchSemanticsNodes().isEmpty())
         composeRule.onNode(hasScrollAction()).performScrollToNode(
+            hasText(activity.getString(R.string.settings_advanced_title)),
+        )
+        composeRule.onNodeWithText(
+            activity.getString(
+                R.string.action_show_named_options,
+                activity.getString(R.string.settings_advanced_title),
+            ),
+        ).performClick()
+        composeRule.onNode(hasScrollAction()).performScrollToNode(
             hasText(activity.getString(R.string.settings_clear_temporary)),
         )
         composeRule.onNodeWithText(activity.getString(R.string.settings_clear_temporary))
@@ -54,6 +63,12 @@ class FormReadyNavigationTest {
             hasText(activity.getString(R.string.presets_title)) and isHeading(),
         ).assertIsDisplayed()
         composeRule.onNodeWithText(activity.getString(R.string.presets_create)).assertIsDisplayed()
+        composeRule.onNodeWithText(
+            activity.getString(
+                R.string.action_show_named_options,
+                activity.getString(R.string.presets_share_title),
+            ),
+        ).performClick()
         composeRule.onNodeWithText(activity.getString(R.string.presets_import)).assertIsDisplayed()
         composeRule.onNodeWithText(activity.getString(R.string.presets_create)).performClick()
         composeRule.onNodeWithText(activity.getString(R.string.presets_maximum_size))
@@ -80,6 +95,9 @@ class FormReadyNavigationTest {
         ).performClick()
 
         composeRule.onNodeWithText(activity.getString(R.string.photo_title)).assertIsDisplayed()
+        composeRule.onNode(hasScrollAction()).performScrollToNode(
+            hasText(activity.getString(R.string.requirement_byte_unit)),
+        )
         composeRule.onNodeWithText(
             activity.getString(R.string.requirement_byte_unit),
         ).assertIsDisplayed()
@@ -100,6 +118,9 @@ class FormReadyNavigationTest {
 
         composeRule.onNodeWithText(activity.getString(R.string.signature_title))
             .assertIsDisplayed()
+        composeRule.onNode(hasScrollAction()).performScrollToNode(
+            hasText(activity.getString(R.string.signature_gallery)),
+        )
         composeRule.onNodeWithText(activity.getString(R.string.signature_gallery))
             .assertIsDisplayed()
         composeRule.onNodeWithText(activity.getString(R.string.signature_camera))
@@ -116,6 +137,9 @@ class FormReadyNavigationTest {
         ).performClick()
 
         composeRule.onNodeWithText(activity.getString(R.string.pdf_title)).assertIsDisplayed()
+        composeRule.onNode(hasScrollAction()).performScrollToNode(
+            hasText(activity.getString(R.string.pdf_choose)),
+        )
         composeRule.onNodeWithText(activity.getString(R.string.pdf_choose)).assertIsDisplayed()
         composeRule.onNodeWithText(activity.getString(R.string.pdf_images_to_pdf))
             .assertIsDisplayed()
@@ -134,8 +158,40 @@ class FormReadyNavigationTest {
         ).performClick()
 
         composeRule.onNodeWithText(activity.getString(R.string.batch_title)).assertIsDisplayed()
+        composeRule.onNode(hasScrollAction()).performScrollToNode(
+            hasText(activity.getString(R.string.batch_choose)),
+        )
         composeRule.onNodeWithText(activity.getString(R.string.batch_choose)).assertIsDisplayed()
-        composeRule.onNodeWithText(activity.getString(R.string.batch_privacy_and_limit, 10))
-            .assertIsDisplayed()
+    }
+
+    @Test
+    fun scannerFlowExplainsTheSimpleStartingChoices() {
+        val activity = composeRule.activity
+        composeRule.onNode(hasScrollAction()).performScrollToNode(
+            hasText(activity.getString(R.string.capability_scanner_title)),
+        )
+        composeRule.onNodeWithText(
+            activity.getString(R.string.capability_scanner_title),
+        ).performClick()
+
+        composeRule.onNodeWithText(activity.getString(R.string.scanner_title)).assertIsDisplayed()
+        composeRule.onNode(hasScrollAction()).performScrollToNode(
+            hasText(activity.getString(R.string.scanner_start)),
+        )
+        composeRule.onNodeWithText(activity.getString(R.string.scanner_start)).assertIsDisplayed()
+        composeRule.onNodeWithText(activity.getString(R.string.scanner_import)).assertIsDisplayed()
+    }
+
+    @Test
+    fun historyExplainsWhatCompletedFilesCanBeUsedFor() {
+        val activity = composeRule.activity
+        composeRule.onNodeWithText(
+            activity.getString(R.string.navigation_history),
+        ).performClick()
+
+        composeRule.onNode(
+            hasText(activity.getString(R.string.history_title)) and isHeading(),
+        ).assertIsDisplayed()
+        composeRule.onNodeWithText(activity.getString(R.string.history_empty)).assertIsDisplayed()
     }
 }

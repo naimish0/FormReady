@@ -158,9 +158,9 @@ Use the Phase 1 branch and PR pattern for every numbered phase:
 
 ## Next-run handoff
 
-The user commissioned the complete post-v1 roadmap on 2026-07-23. Continue automatically through
-Phases 6–10 using the per-phase Git workflow above. Complete, verify, publish, and merge exactly one
-phase before creating the next phase branch. Phase 10 is the current implementation phase.
+The user commissioned the complete post-v1 roadmap on 2026-07-23. Phases 1–10 are implemented.
+Continue post-phase usability, release-readiness, and maintenance work with the same isolated
+branch, verification, pull-request, and merge workflow.
 
 ## 2026-07-23 single-module conversion checkpoint
 
@@ -169,6 +169,22 @@ phase before creating the next phase branch. Phase 10 is the current implementat
 - Verification passed: `./gradlew test`, `./gradlew :app:lintDebug`, `./gradlew :app:assembleDebug`, `./gradlew :app:bundleRelease`, and `./gradlew :app:connectedDebugAndroidTest`.
 - The 13 MiB debug APK installed and cold-launched successfully on a Samsung SM-S928B running Android 16. The 4.1 MiB minified release bundle completed R8 and lint-vital checks.
 - The merged debug APK requests only WorkManager-required `WAKE_LOCK`, `RECEIVE_BOOT_COMPLETED`, and the AndroidX dynamic-receiver signature permission; it has no network, broad storage, camera, advertising, or notification permission.
+
+## 2026-07-24 basic-user experience checkpoint
+
+- Audited every top-level screen and documented a beginner-first interaction contract. Each
+  feature now explains its simplest successful path before presenting controls.
+- Kept primary actions visible while moving preset import, visual fine-tuning, PDF inspection,
+  scan text extraction, batch crop behavior, privacy/quality preferences, destructive settings,
+  and support diagnostics into clearly named optional sections.
+- Replaced remaining normal-screen abbreviations and specialist script labels with plain-language
+  terms and language examples. Image-format and print-resolution choices include nearby guidance;
+  preset structured data remains an advanced import/export implementation detail.
+- Verification passed: `./gradlew test`, `./gradlew :app:lintDebug`,
+  `./gradlew :app:assembleDebug`, `./gradlew :app:bundleRelease`, and
+  `./gradlew :app:connectedDebugAndroidTest`. All 34 connected tests passed on a Samsung SM-S928B
+  running Android 16, including navigation coverage for every top-level feature.
+- No manifest, dependency, data-flow, processing, or permission change was introduced.
 
 ## Known release gates
 

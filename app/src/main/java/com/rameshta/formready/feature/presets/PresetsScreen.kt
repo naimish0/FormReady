@@ -38,6 +38,8 @@ import com.rameshta.formready.R
 import com.rameshta.formready.core.data.repository.PresetRecord
 import com.rameshta.formready.core.data.repository.PresetSpecification
 import com.rameshta.formready.core.data.repository.PresetTargetType
+import com.rameshta.formready.ui.component.BeginnerGuidanceCard
+import com.rameshta.formready.ui.component.OptionalSection
 import org.json.JSONObject
 
 @Composable
@@ -66,6 +68,10 @@ fun PresetsScreen(viewModel: PresetsViewModel) {
             )
         }
         item {
+            BeginnerGuidanceCard(
+                title = stringResource(R.string.presets_beginner_title),
+                body = stringResource(R.string.presets_beginner_help),
+            )
             Text(stringResource(R.string.presets_confirm_rules))
             Text(
                 stringResource(R.string.presets_file_help),
@@ -79,16 +85,16 @@ fun PresetsScreen(viewModel: PresetsViewModel) {
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
             )
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+            Button(onClick = {
+                editingPreset = null
+                showEditor = true
+            }) {
+                Text(stringResource(R.string.presets_create))
+            }
+            OptionalSection(
+                title = stringResource(R.string.presets_share_title),
+                summary = stringResource(R.string.presets_share_help),
             ) {
-                Button(onClick = {
-                    editingPreset = null
-                    showEditor = true
-                }) {
-                    Text(stringResource(R.string.presets_create))
-                }
                 OutlinedButton(
                     onClick = {
                         importer.launch(
