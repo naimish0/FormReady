@@ -31,6 +31,12 @@ memory-intensive jobs through one application-wide gate. Signature plans add det
 cleanup and normalized crop/rotation/placement controls before using the shared image encoder and
 reopened validation path.
 
+PDF processing uses replaceable `PdfEngine` and `PdfPreparationService` contracts. The shipped
+engine is the stable platform `PdfRenderer`/`PdfDocument` path: it inspects and lazily renders
+private staged files, explicitly labels structure-preserving compression unavailable, and permits
+only acknowledged page-flattening compression. It processes one page at a time and validates
+generated PDFs by reopening and rendering every page. No third-party PDF engine is present.
+
 Exports are generated and reopened/validated privately before one explicit copy to a user
 destination. Originals are never overwritten. Output records retain the immutable processing
 recipe, real byte count, reopened dimensions/DPI, readiness, and rule results.
@@ -43,4 +49,4 @@ recipe, real byte count, reopened dimensions/DPI, readiness, and rule results.
 - WorkManager for committed durable exports.
 - Min API 24; compile/target API 36; Java bytecode/toolchain level 17.
 
-No network dependency or permission is present through Phase 2.
+No network dependency or permission is present through Phase 3.

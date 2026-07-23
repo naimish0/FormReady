@@ -64,4 +64,17 @@ class FormReadyNavigationTest {
         composeRule.onNodeWithText(activity.getString(R.string.signature_draw))
             .assertIsDisplayed()
     }
+
+    @Test
+    fun pdfFlowOffersInspectionImagesAndHonestCompression() {
+        val activity = composeRule.activity
+        composeRule.onNodeWithText(
+            activity.getString(R.string.capability_pdf_title),
+        ).performClick()
+
+        composeRule.onNodeWithText(activity.getString(R.string.pdf_title)).assertIsDisplayed()
+        composeRule.onNodeWithText(activity.getString(R.string.pdf_choose)).assertIsDisplayed()
+        composeRule.onNodeWithText(activity.getString(R.string.pdf_images_to_pdf))
+            .assertIsDisplayed()
+    }
 }

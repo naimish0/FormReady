@@ -41,6 +41,18 @@ PDF inputs remain untrusted. Enforce pages/passes, estimate memory before alloca
 resources, remove partial outputs, and reopen final private candidates. Diagnostics must exclude
 file names, paths, URIs, thumbnails, OCR, signatures, face data, and user-entered personal data.
 
+## Phase 3 PDF controls
+
+- PDFs use the same bounded `noBackupFilesDir` staging path and are rejected unless the magic
+  header and platform renderer both accept them.
+- Page count, page dimensions, full-document bytes, render pixels, compression passes, JPEG
+  quality, and render DPI are bounded with named floors/ceilings.
+- Safe compression is disabled because no structure-aware dependency is shipped. Strong output
+  cannot start without explicit acknowledgement that page structure and digital signatures may
+  be lost.
+- Temporary page images and candidate PDFs are private and deleted after success, failure, or
+  cancellation; abandoned images-to-PDF directories expire during startup cleanup.
+
 ## Threats tracked
 
 Malformed/image/PDF bombs, decompression expansion, path traversal, lost grants, non-seekable providers, storage exhaustion, cancellation races, duplicate work, process death, malicious incoming intents, metadata leakage, and accidental logging require explicit tests in the implementing phase.

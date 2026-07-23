@@ -4,6 +4,8 @@ import com.rameshta.formready.core.model.NormalizedTransform
 import com.rameshta.formready.core.model.ByteUnit
 import com.rameshta.formready.core.model.DimensionRule
 import com.rameshta.formready.core.model.PhysicalUnit
+import com.rameshta.formready.core.model.PdfCompressionMode
+import com.rameshta.formready.core.model.PdfOptions
 import com.rameshta.formready.core.model.OutputFormat
 import com.rameshta.formready.core.model.OutputSpecification
 import com.rameshta.formready.core.model.ProcessingPlan
@@ -80,6 +82,18 @@ object PhotoPlanCodec {
                     .put("cropTop", options.cropTop.toDouble())
                     .put("cropRight", options.cropRight.toDouble())
                     .put("cropBottom", options.cropBottom.toDouble())
+            } ?: JSONObject.NULL,
+        )
+        .put(
+            "pdfOptions",
+            plan.pdfOptions?.let { options ->
+                JSONObject()
+                    .put("compressionMode", options.compressionMode.name)
+                    .put("flatteningAcknowledged", options.flatteningAcknowledged)
+                    .put("initialDpi", options.initialDpi)
+                    .put("minimumDpi", options.minimumDpi)
+                    .put("minimumJpegQuality", options.minimumJpegQuality)
+                    .put("maximumPasses", options.maximumPasses)
             } ?: JSONObject.NULL,
         )
         .put("hardRuleIds", JSONArray(plan.hardRuleIds.toList()))
@@ -167,6 +181,24 @@ object PhotoPlanCodec {
                     cropTop = options.optDouble("cropTop", 0.0).toFloat(),
                     cropRight = options.optDouble("cropRight", 1.0).toFloat(),
                     cropBottom = options.optDouble("cropBottom", 1.0).toFloat(),
+                )
+            },
+            pdfOptions = root.optJSONObject("pdfOptions")?.let { options ->
+                PdfOptions(
+                    compressionMode = PdfCompressionMode.valueOf(
+                        options.optString(
+                            "compressionMode",
+                            PdfCompressionMode.VALIDATE_ONLY.name,
+                        ),
+                    ),
+                    flatteningAcknowledged = options.optBoolean(
+                        "flatteningAcknowledged",
+                        false,
+                    ),
+                    initialDpi = options.optInt("initialDpi", 150),
+                    minimumDpi = options.optInt("minimumDpi", 120),
+                    minimumJpegQuality = options.optInt("minimumJpegQuality", 40),
+                    maximumPasses = options.optInt("maximumPasses", 6),
                 )
             },
         )
