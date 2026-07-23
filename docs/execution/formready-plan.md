@@ -144,13 +144,23 @@ Use the Phase 1 branch and PR pattern for every numbered phase:
   - Verification on 2026-07-23: 32 unit tests, Android-test source compilation, `lintDebug`,
     `assembleDebug`, minified/R8 `bundleRelease`, Bundletool validation, universal APK 16 KB ZIP
     alignment, and 64-bit ELF inspection passed. No connected device was available.
-- [ ] Phase 10 — Optional lifetime Pro purchase
+- [x] Phase 10 — Optional lifetime Pro purchase
+  - Play Billing 9.1.0 implements a single non-consumable lifetime entitlement with automatic
+    reconnection, fresh product queries, startup/resume/restore reconciliation, pending-state
+    denial, acknowledgement and explicit cancellation/offline/error handling.
+  - The exact Play Console ID is an empty-by-default validated build property. Missing configuration
+    creates no BillingClient and hides all purchase UI; no production ID is invented.
+  - Pro raises only the bounded convenience-batch cap from 10 to 50. Exact preparation and
+    validation remain free, and the 200 MiB/global-serialization/privacy limits do not change.
+  - Verification on 2026-07-23: 36 unit tests, Android-test source compilation, `lintDebug`,
+    `assembleDebug`, minified/R8 `bundleRelease`, Bundletool validation, universal APK 16 KB ZIP
+    alignment, and 64-bit ELF inspection passed. No device or real Play product was available.
 
 ## Next-run handoff
 
 The user commissioned the complete post-v1 roadmap on 2026-07-23. Continue automatically through
 Phases 6–10 using the per-phase Git workflow above. Complete, verify, publish, and merge exactly one
-phase before creating the next phase branch. Phase 10 is the next phase after Phase 9 merges.
+phase before creating the next phase branch. Phase 10 is the current implementation phase.
 
 ## 2026-07-23 single-module conversion checkpoint
 
@@ -166,5 +176,5 @@ phase before creating the next phase branch. Phase 10 is the next phase after Ph
 - API 24 compatibility, the complete API 36 UI rerun, full accessibility, large-fixture,
   generated Baseline Profile, and Macrobenchmark evidence remain release gates. Earlier
   startup/navigation and processor suites passed on a physical Android 16 device.
-- No ad, consent, Billing, analytics, network, camera, or ML SDK is shipped. PDF processing uses
-  stable platform APIs; AndroidX ExifInterface performs local image metadata inspection.
+- No ad, consent, analytics, app camera, remote-AI, or general network-client SDK is shipped. ML Kit
+  and optional Play Billing are the only network-capable SDK families.

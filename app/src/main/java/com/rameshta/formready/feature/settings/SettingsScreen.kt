@@ -37,6 +37,8 @@ import com.rameshta.formready.core.data.settings.DefaultDimensionUnit
 import com.rameshta.formready.core.data.settings.DefaultImageFormat
 import com.rameshta.formready.core.data.settings.ThemePreference
 import com.rameshta.formready.core.data.settings.UserSettings
+import com.rameshta.formready.core.monetization.ProState
+import com.rameshta.formready.core.monetization.ProStatus
 
 @Composable
 fun SettingsScreen(
@@ -47,6 +49,9 @@ fun SettingsScreen(
     onRestoreSettings: () -> Unit,
     onClearHistory: () -> Unit,
     onClearTemporaryFiles: () -> Unit,
+    proState: ProState,
+    onPurchasePro: () -> Unit,
+    onRestorePro: () -> Unit,
 ) {
     val context = LocalContext.current
     var pendingAction by remember { mutableStateOf<SettingsDestructiveAction?>(null) }
@@ -232,6 +237,56 @@ fun SettingsScreen(
             }
             Button(onClick = { pendingAction = SettingsDestructiveAction.RESTORE_DEFAULTS }) {
                 Text(stringResource(R.string.settings_restore_defaults))
+            }
+        }
+        if (proState.isConfigured) {
+            item {
+                SettingHeading(stringResource(R.string.settings_pro_title))
+                Text(
+                    stringResource(
+                        if (proState.isEntitled) {
+                            R.string.settings_pro_active
+                        } else {
+                            R.string.settings_pro_benefits
+                        },
+                    ),
+                )
+                Text(
+                    stringResource(
+                        when (proState.status) {
+                            ProStatus.UNCONFIGURED -> R.string.settings_pro_unavailable
+                            ProStatus.CONNECTING -> R.string.settings_pro_connecting
+                            ProStatus.AVAILABLE -> R.string.settings_pro_available
+                            ProStatus.PENDING -> R.string.settings_pro_pending
+                            ProStatus.PURCHASED -> R.string.settings_pro_purchased
+                            ProStatus.CANCELLED -> R.string.settings_pro_cancelled
+                            ProStatus.OFFLINE -> R.string.settings_pro_offline
+                            ProStatus.ERROR -> R.string.settings_pro_error
+                        },
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (
+                    !proState.isEntitled &&
+                    proState.status in setOf(ProStatus.AVAILABLE, ProStatus.CANCELLED) &&
+                    proState.formattedPrice != null
+                ) {
+                    Button(onClick = onPurchasePro) {
+                        Text(
+                            stringResource(
+                                R.string.settings_pro_buy,
+                                proState.formattedPrice,
+                            ),
+                        )
+                    }
+                }
+                Button(onClick = onRestorePro) {
+                    Text(stringResource(R.string.settings_pro_restore))
+                }
+                Text(
+                    stringResource(R.string.settings_pro_client_only_notice),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
         item {

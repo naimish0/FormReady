@@ -13,6 +13,8 @@ import com.rameshta.formready.core.model.JobStatus
 import com.rameshta.formready.core.model.JobType
 import com.rameshta.formready.core.model.OutputArtifact
 import com.rameshta.formready.core.model.OutputFormat
+import com.rameshta.formready.core.monetization.ProBenefits
+import com.rameshta.formready.core.monetization.ProManager
 import com.rameshta.formready.core.processing.BatchPlanFactory
 import com.rameshta.formready.core.processing.ImageMetadata
 import com.rameshta.formready.core.processing.PhotoOutputAccess
@@ -55,6 +57,7 @@ data class BatchUiState(
     val isSavingZip: Boolean = false,
     val zipSaved: Boolean = false,
     val errorCode: String? = null,
+    val itemLimit: Int = ProBenefits.FREE_BATCH_ITEMS,
 ) {
     val isRunning: Boolean
         get() = items.any { it.status == JobStatus.QUEUED || it.status == JobStatus.RUNNING }
@@ -77,6 +80,7 @@ class BatchViewModel @Inject constructor(
     private val outputs: OutputArtifactRepository,
     private val scheduler: ProcessingScheduler,
     private val outputAccess: PhotoOutputAccess,
+    private val proManager: ProManager,
 ) : ViewModel() {
     private val mutableState = MutableStateFlow(
         BatchUiState(
@@ -99,6 +103,13 @@ class BatchViewModel @Inject constructor(
     private val observers = mutableMapOf<UUID, MutableList<Job>>()
 
     init {
+        viewModelScope.launch {
+            proManager.state.collect { proState ->
+                mutableState.update {
+                    it.copy(itemLimit = ProBenefits.batchItemLimit(proState.isEntitled))
+                }
+            }
+        }
         val ids = savedStateHandle.get<Array<String>>(KEY_ITEM_IDS)
             ?.mapNotNull { runCatching { UUID.fromString(it) }.getOrNull() }
             .orEmpty()
@@ -111,7 +122,7 @@ class BatchViewModel @Inject constructor(
             mutableState.update { it.copy(errorCode = "BATCH_ALREADY_RUNNING") }
             return
         }
-        if (uris.size > FREE_BATCH_LIMIT) {
+        if (uris.size > mutableState.value.itemLimit) {
             mutableState.update { it.copy(errorCode = "BATCH_ITEM_LIMIT") }
             return
         }
@@ -187,6 +198,10 @@ class BatchViewModel @Inject constructor(
 
     fun start() {
         val state = mutableState.value
+        if (state.items.size > state.itemLimit) {
+            mutableState.update { it.copy(errorCode = "BATCH_ITEM_LIMIT") }
+            return
+        }
         if (
             state.items.isEmpty() ||
             state.isLoading ||
@@ -338,6 +353,7 @@ class BatchViewModel @Inject constructor(
             dpiText = mutableState.value.dpiText,
             outputFormat = mutableState.value.outputFormat,
             cropMode = mutableState.value.cropMode,
+            itemLimit = mutableState.value.itemLimit,
         )
     }
 
@@ -442,7 +458,6 @@ class BatchViewModel @Inject constructor(
     }
 
     private companion object {
-        const val FREE_BATCH_LIMIT = 10
         const val MAX_BATCH_INPUT_BYTES = 200L * 1024L * 1024L
         const val ZIP_BUFFER_BYTES = 64 * 1024
         const val KEY_BATCH_ID = "batch.id"

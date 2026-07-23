@@ -12,6 +12,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rameshta.formready.core.data.settings.ThemePreference
 import com.rameshta.formready.core.designsystem.FormReadyTheme
+import com.rameshta.formready.core.monetization.ProManager
 import com.rameshta.formready.feature.photo.PhotoViewModel
 import com.rameshta.formready.feature.pdf.PdfViewModel
 import com.rameshta.formready.feature.presets.PresetsViewModel
@@ -20,9 +21,12 @@ import com.rameshta.formready.feature.scanner.ScannerViewModel
 import com.rameshta.formready.feature.batch.BatchViewModel
 import com.rameshta.formready.ui.FormReadyApp
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @Inject
+    lateinit var proManager: ProManager
     private val viewModel: MainViewModel by viewModels()
     private val photoViewModel: PhotoViewModel by viewModels()
     private val signatureViewModel: SignatureViewModel by viewModels()
@@ -36,6 +40,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val state by viewModel.uiState.collectAsStateWithLifecycle()
+            val proState by proManager.state.collectAsStateWithLifecycle()
             val darkTheme = when (state.settings.theme) {
                 ThemePreference.SYSTEM -> isSystemInDarkTheme()
                 ThemePreference.LIGHT -> false
@@ -72,8 +77,16 @@ class MainActivity : ComponentActivity() {
                     onDeleteOutputAndHistory = viewModel::deleteOutputAndHistory,
                     onClearHistory = viewModel::clearHistory,
                     onClearTemporaryFiles = viewModel::clearTemporaryFiles,
+                    proState = proState,
+                    onPurchasePro = { proManager.purchase(this@MainActivity) },
+                    onRestorePro = proManager::refresh,
                 )
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        proManager.refresh()
     }
 }

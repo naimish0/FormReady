@@ -3,6 +3,8 @@ package com.rameshta.formready.core.data.di
 import android.content.Context
 import androidx.room.Room
 import com.rameshta.formready.core.data.local.FormReadyDatabase
+import com.rameshta.formready.core.data.entitlement.DataStoreProEntitlementStore
+import com.rameshta.formready.core.data.entitlement.ProEntitlementStore
 import com.rameshta.formready.core.data.local.OutputArtifactDao
 import com.rameshta.formready.core.data.local.PresetDao
 import com.rameshta.formready.core.data.local.ProcessingJobDao
@@ -27,6 +29,12 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class DataBindingsModule {
+    @Binds
+    @Singleton
+    abstract fun bindProEntitlementStore(
+        implementation: DataStoreProEntitlementStore,
+    ): ProEntitlementStore
+
     @Binds
     @Singleton
     abstract fun bindJobRepository(implementation: RoomJobRepository): JobRepository

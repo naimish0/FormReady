@@ -48,7 +48,7 @@ fun BatchRoute(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var confirmDiscard by remember { mutableStateOf(false) }
     val picker = rememberLauncherForActivityResult(
-        ActivityResultContracts.PickMultipleVisualMedia(MAX_FREE_ITEMS),
+        ActivityResultContracts.PickMultipleVisualMedia(MAX_PRO_ITEMS),
     ) { uris -> viewModel.selectImages(uris) }
     val saveZip = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/zip"),
@@ -75,7 +75,7 @@ fun BatchRoute(
             }
         }
         item {
-            Text(stringResource(R.string.batch_privacy_and_limit))
+            Text(stringResource(R.string.batch_privacy_and_limit, state.itemLimit))
         }
         item {
             Card(Modifier.fillMaxWidth()) {
@@ -344,4 +344,4 @@ private fun batchStatusText(status: JobStatus?): String = stringResource(
     },
 )
 
-private const val MAX_FREE_ITEMS = 10
+private const val MAX_PRO_ITEMS = 50

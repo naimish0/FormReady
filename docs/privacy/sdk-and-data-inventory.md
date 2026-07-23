@@ -16,12 +16,13 @@ Re-run it for every release candidate.
 | Bundled ML Kit Face Detection | On-device portrait pixels and ephemeral face landmarks/angles | Placement guidance only; no recognition or identity matching | Portrait pixels and detection results stay on-device; SDK metrics may be transmitted | Guidance is not persisted | Disclose ML Kit metrics and on-device face processing |
 | Bundled ML Kit Selfie Segmentation (beta) | On-device portrait pixels and ephemeral person mask | Optional background replacement | Portrait pixels and masks stay on-device; SDK metrics may be transmitted | Mask exists in memory; only explicit normalized user refinement strokes enter the local job plan | Disclose ML Kit metrics and on-device processing |
 | PdfBox-Android | Privately staged PDF page objects | Merge, split/extract, reorder, rotate, and delete supported PDF pages | None; no network capability | Private staged inputs and app-owned output candidate only | Not collected/shared |
+| Google Play Billing 9.1.0 | Configured product ID, purchase state/token and Play account transaction context | Optional one-time Pro purchase, acknowledgement and restore | Communicates with Google Play; FormReady has no access to payment-card data | Only a Boolean entitlement is persisted; tokens/order IDs/debug messages are not stored or logged | Reconcile financial info, purchase history, device/other identifiers and Google Play processing with the final Console form |
 
 ## Explicitly absent
 
 No Google Mobile Ads, UMP, Advertising ID, Firebase product, app-authored analytics, crash
-reporting, Play Billing, general network client, cloud database, account SDK, remote AI service or
-custom backend is shipped. ML Kit is the only network-capable SDK family.
+reporting, general network client, cloud database, account SDK, remote AI service or custom backend
+is shipped. ML Kit and optional Play Billing are the network-capable SDK families.
 
 ## Proposed Play Data Safety answers
 

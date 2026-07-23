@@ -118,3 +118,15 @@ Only deterministic synthetic fixtures may be used. Release evidence must record 
 - Device execution remains required for 10-item ordering, failed-item continuation, cancellation,
   process recreation, Photo Picker/provider loss, 200 MiB rejection, low storage, ZIP contents,
   accessibility and API 24.
+
+## Phase 10 reference run — 2026-07-23
+
+- Local JVM/lint/debug/release gates passed with 36 unit tests. Entitlement policy tests cover
+  purchased, pending, absent/different-product and free/Pro batch-limit decisions.
+- Android-test Kotlin sources compiled with the default empty product configuration. Billing and Pro
+  UI remain hidden in that configuration.
+- Bundletool, 16 KB universal-APK alignment and all packaged 64-bit ELF checks passed. Billing adds
+  no native library and the merged manifest adds only `com.android.vending.BILLING`.
+- A real product ID and Play licence-test environment were unavailable. Configured checkout,
+  cancellation, pending completion/cancellation, already-owned, restore, offline, acknowledgement
+  retry and refund/revoke execution remain required before a Pro release.

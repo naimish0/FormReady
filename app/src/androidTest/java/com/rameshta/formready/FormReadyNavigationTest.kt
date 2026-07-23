@@ -109,7 +109,7 @@ class FormReadyNavigationTest {
 
         composeRule.onNodeWithText(activity.getString(R.string.batch_title)).assertIsDisplayed()
         composeRule.onNodeWithText(activity.getString(R.string.batch_choose)).assertIsDisplayed()
-        composeRule.onNodeWithText(activity.getString(R.string.batch_privacy_and_limit))
+        composeRule.onNodeWithText(activity.getString(R.string.batch_privacy_and_limit, 10))
             .assertIsDisplayed()
     }
 }

@@ -23,6 +23,7 @@ mlkitTextRecognition = "16.0.1"
 mlkitFaceDetection = "16.1.7"
 mlkitSelfieSegmentation = "16.0.0-beta6"
 pdfboxAndroid = "2.0.27.0"
+playBilling = "9.1.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -63,6 +64,7 @@ google-mlkit-text-recognition-devanagari = { group = "com.google.mlkit", name = 
 google-mlkit-face-detection = { group = "com.google.mlkit", name = "face-detection", version.ref = "mlkitFaceDetection" }
 google-mlkit-selfie-segmentation = { group = "com.google.mlkit", name = "segmentation-selfie", version.ref = "mlkitSelfieSegmentation" }
 pdfbox-android = { group = "com.tom-roush", name = "pdfbox-android", version.ref = "pdfboxAndroid" }
+play-billing = { group = "com.android.billingclient", name = "billing", version.ref = "playBilling" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

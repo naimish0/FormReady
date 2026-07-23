@@ -6,6 +6,7 @@ import androidx.work.Configuration
 import com.rameshta.formready.core.processing.PrivateWorkspaceCleaner
 import com.rameshta.formready.core.data.settings.SettingsRepository
 import com.rameshta.formready.core.monetization.AdManager
+import com.rameshta.formready.core.monetization.ProManager
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
@@ -24,11 +25,14 @@ class FormReadyApplication : Application(), Configuration.Provider {
     lateinit var settingsRepository: SettingsRepository
     @Inject
     lateinit var adManager: AdManager
+    @Inject
+    lateinit var proManager: ProManager
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     override fun onCreate() {
         super.onCreate()
         adManager.onAppSessionStarted()
+        proManager.start()
         applicationScope.launch {
             if (settingsRepository.settings.first().automaticCleanupEnabled) {
                 workspaceCleaner.removeAbandonedPartials()
