@@ -1,13 +1,24 @@
 # FormReady test matrix
 
-| Area | Phase 0 automated evidence | Later required evidence |
+| Area | Completed automated evidence | Later required evidence |
 |---|---|---|
-| Domain | Job transitions and validation aggregation unit tests | Units, geometry, solver, preset migrations |
-| Data | Room schema exported; compilation verifies queries | DAO, migration, process recreation tests |
-| Processing | Staging limit constant and worker compilation | URI providers, cancellation, low storage, corrupt input, output reopen |
-| UI | Compose debug assembly and physical-device Home-to-Settings smoke test | 200% font, TalkBack, RTL, Hindi, rotation |
-| Privacy | Manifest audit; backup/cleartext disabled | File cleanup, metadata removal, diagnostics redaction |
-| Build | Debug assembly, unit tests, lint, release/R8 bundle | Signed AAB validation, 16 KB native audit |
+| Domain | Job transitions, validation aggregation, units, physical-to-pixel rounding, generic presets, crop geometry, and bounded/non-monotonic JPEG solver unit tests | Signature/PDF domain rules and preset migrations |
+| Data | Room schemas exported; 1-to-2 migration preserves records and adds validation/readiness defaults | DAO concurrency and destructive-migration rejection |
+| Processing | Bounded private staging; JPEG/PNG/WebP inspection; corrupt, zero-byte and animated rejection; all EXIF orientations; exact/maximum geometry; native DPI reopen; target-unreachable cleanup; expired-part cleanup; synthetic 48 MP processing | Low-storage provider fixture and API 24 execution |
+| UI | Physical-device Home/Settings and Photo requirement/editor navigation tests | 200% font, TalkBack, RTL, Hindi, rotation |
+| Privacy | Manifest audit; backup/cleartext disabled; metadata removal test; private partial cleanup | Diagnostic-export redaction and airplane-mode run |
+| Build | Debug assembly, unit tests, lint, release/R8 bundle, debug APK install | Signed AAB validation, 16 KB native audit |
+
+## Phase 1 reference run — 2026-07-23
+
+- Host: macOS, Gradle wrapper 9.3.1, AGP 9.1.1, JDK-compatible daemon toolchain.
+- Device: Samsung SM-S928B, Android 16, arm64.
+- Commands: `./gradlew test`, `./gradlew :app:lintDebug`,
+  `./gradlew :app:assembleDebug`, `./gradlew :app:bundleRelease`, and
+  `./gradlew connectedDebugAndroidTest`.
+- Result: all gates passed; 13 connected tests passed.
+- Fixtures: deterministic synthetic bitmaps/PNG/JPEG/WebP and generated EXIF variants. No real
+  identity, signature, or user document was used.
 
 ## Required device matrix before release
 

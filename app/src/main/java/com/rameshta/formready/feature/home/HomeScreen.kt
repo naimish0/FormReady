@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
@@ -21,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.rameshta.formready.R
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(onPreparePhoto: () -> Unit) {
     val capabilities = listOf(
         R.string.capability_photo_title to R.string.capability_photo_description,
         R.string.capability_signature_title to R.string.capability_signature_description,
@@ -68,7 +69,15 @@ fun HomeScreen() {
             }
         }
         items(capabilities) { capability ->
-            CapabilityCard(capability.first, capability.second)
+            CapabilityCard(
+                titleRes = capability.first,
+                descriptionRes = capability.second,
+                onClick = if (capability.first == R.string.capability_photo_title) {
+                    onPreparePhoto
+                } else {
+                    null
+                },
+            )
         }
         item {
             Text(
@@ -81,8 +90,16 @@ fun HomeScreen() {
 }
 
 @Composable
-private fun CapabilityCard(titleRes: Int, descriptionRes: Int) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+private fun CapabilityCard(
+    titleRes: Int,
+    descriptionRes: Int,
+    onClick: (() -> Unit)?,
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
+    ) {
         Row(
             modifier = Modifier.padding(20.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),

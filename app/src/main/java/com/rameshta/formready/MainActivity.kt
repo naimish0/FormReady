@@ -10,12 +10,14 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rameshta.formready.core.data.settings.ThemePreference
 import com.rameshta.formready.core.designsystem.FormReadyTheme
+import com.rameshta.formready.feature.photo.PhotoViewModel
 import com.rameshta.formready.ui.FormReadyApp
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
+    private val photoViewModel: PhotoViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,6 +37,9 @@ class MainActivity : ComponentActivity() {
                     settings = state.settings,
                     onThemeSelected = viewModel::setTheme,
                     onDynamicColourChanged = viewModel::setDynamicColour,
+                    photoViewModel = photoViewModel,
+                    recentJobs = state.recentJobs,
+                    recentArtifactsByJob = state.recentArtifactsByJob,
                 )
             }
         }
