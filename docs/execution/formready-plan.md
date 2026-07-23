@@ -100,15 +100,28 @@ Use the Phase 1 branch and PR pattern for every numbered phase:
   - Production publication remains correctly blocked on an approved public HTTPS privacy-policy
     URL, production upload-key signing, Play Console declarations/testing, final screenshots, and
     the device/accessibility/performance matrix recorded in the release checklist.
+- [x] Phase 6 — Document scanner and on-device OCR
+  - Enhanced Google Play services scanning provides on-device multi-page capture, correction,
+    filters and page management; import/external-camera fallback provides bounded private staging,
+    four-corner correction, colour/grayscale/black-and-white filters, rotation and ordering.
+  - Bundled Latin and Devanagari OCR runs sequentially on-device and exports plain text explicitly.
+    Searchable PDF remains truthfully unsupported; corrected pages export through the validated
+    platform PDF engine.
+  - Verification on 2026-07-23: 27 unit tests, `lintDebug`, `assembleDebug`, minified/R8
+    `bundleRelease`, Bundletool validation, universal APK 16 KB zip alignment, and native ELF
+    inspection passed. No connected device was available.
+  - ML Kit adds the sole `INTERNET` permission for module delivery/SDK metrics; privacy, Data
+    Safety, dependency and licence records were updated. Content and OCR results remain on-device.
+- [ ] Phase 7 — ID/passport photo workflow and background replacement
+- [ ] Phase 8 — Structure-preserving PDF page operations
+- [ ] Phase 9 — Bounded batch processing
+- [ ] Phase 10 — Optional lifetime Pro purchase
 
 ## Next-run handoff
 
-All numbered launch implementation phases are complete. Do not automatically begin the post-v1
-roadmap: each post-v1 item requires its own approved scope and branch. The next release run should
-close the external/manual gates in `docs/release/play-release-checklist.md`, publish the approved
-privacy-policy source at a stable public HTTPS URL, set `privacy_policy_url`, capture only
-synthetic-fixture screenshots, configure production signing outside version control, and rerun
-the complete repository and device matrices immediately before Play upload.
+The user commissioned the complete post-v1 roadmap on 2026-07-23. Continue automatically through
+Phases 6–10 using the per-phase Git workflow above. Complete, verify, publish, and merge exactly one
+phase before creating the next phase branch. Phase 6 is the current phase.
 
 ## 2026-07-23 single-module conversion checkpoint
 

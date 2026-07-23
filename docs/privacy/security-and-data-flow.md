@@ -55,6 +55,19 @@ file names, paths, URIs, thumbnails, OCR, signatures, face data, and user-entere
 - Temporary page images and candidate PDFs are private and deleted after success, failure, or
   cancellation; abandoned images-to-PDF directories expire during startup cleanup.
 
+## Phase 6 scanner and OCR controls
+
+- Enhanced scanning runs on-device through the Google Play services document-scanner UI; its
+  module can be downloaded dynamically, while manual import and external-camera capture remain
+  available without broad storage or app camera permission.
+- Returned pages are bounded, decode-validated, copied immediately to no-backup private storage,
+  processed sequentially, and removed by explicit or age-based temporary-file cleanup.
+- Bundled Latin and Devanagari OCR models avoid first-use model downloads. Document pixels and
+  recognized text are not sent by FormReady, persisted in Room, or included in diagnostics.
+- ML Kit may transmit SDK device/app information and performance/usage metrics. The merged
+  manifest therefore includes `INTERNET`, and release disclosures must no longer describe the
+  application as having no network capability.
+
 ## Threats tracked
 
 Malformed/image/PDF bombs, decompression expansion, path traversal, lost grants, non-seekable providers, storage exhaustion, cancellation races, duplicate work, process death, malicious incoming intents, metadata leakage, and accidental logging require explicit tests in the implementing phase.

@@ -33,6 +33,20 @@ class PrivateWorkspaceCleaner @Inject constructor(
                 nowEpochMillis - directory.lastModified() >= RETENTION_MILLIS
             }
             ?.forEach(File::deleteRecursively)
+        File(context.noBackupFilesDir, SCANNER_SESSION_DIRECTORY)
+            .listFiles()
+            ?.asSequence()
+            ?.filter(File::isDirectory)
+            ?.filter { directory ->
+                nowEpochMillis - directory.lastModified() >= RETENTION_MILLIS
+            }
+            ?.forEach(File::deleteRecursively)
+        File(context.cacheDir, SCANNER_CAPTURE_DIRECTORY)
+            .listFiles()
+            ?.asSequence()
+            ?.filter(File::isFile)
+            ?.filter { file -> nowEpochMillis - file.lastModified() >= RETENTION_MILLIS }
+            ?.forEach(File::delete)
     }
 
     /** Removes only private, reproducible working files; exported outputs are never touched. */
@@ -40,6 +54,8 @@ class PrivateWorkspaceCleaner @Inject constructor(
         File(context.noBackupFilesDir, STAGED_INPUT_DIRECTORY).deleteRecursively()
         File(context.noBackupFilesDir, IMAGES_TO_PDF_DIRECTORY).deleteRecursively()
         File(context.cacheDir, SIGNATURE_CAPTURE_DIRECTORY).deleteRecursively()
+        File(context.noBackupFilesDir, SCANNER_SESSION_DIRECTORY).deleteRecursively()
+        File(context.cacheDir, SCANNER_CAPTURE_DIRECTORY).deleteRecursively()
         File(context.filesDir, PrivatePhotoOutputAccess.OUTPUT_DIRECTORY)
             .listFiles()
             ?.filter { it.isFile && it.name.endsWith(PARTIAL_SUFFIX) }
@@ -52,5 +68,7 @@ class PrivateWorkspaceCleaner @Inject constructor(
         private const val PARTIAL_SUFFIX = ".part"
         private const val SIGNATURE_CAPTURE_DIRECTORY = "signature-captures"
         private const val IMAGES_TO_PDF_DIRECTORY = "images-to-pdf"
+        private const val SCANNER_SESSION_DIRECTORY = "scanner-sessions"
+        private const val SCANNER_CAPTURE_DIRECTORY = "scanner-captures"
     }
 }

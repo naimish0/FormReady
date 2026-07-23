@@ -23,11 +23,22 @@ class PrivateWorkspaceCleanerInstrumentedTest {
             File(context.filesDir, PrivatePhotoOutputAccess.OUTPUT_DIRECTORY).apply { mkdirs() }
         val partial = File(outputDirectory, "test-cleaner.part").apply { writeText("temporary") }
         val completed = File(outputDirectory, "test-cleaner.jpg").apply { writeText("completed") }
+        val scannerSession =
+            File(context.noBackupFilesDir, "scanner-sessions/test/page.jpg").apply {
+                parentFile?.mkdirs()
+                writeText("scan")
+            }
+        val scannerCapture = File(context.cacheDir, "scanner-captures/test.jpg").apply {
+            parentFile?.mkdirs()
+            writeText("capture")
+        }
 
         PrivateWorkspaceCleaner(context).clearTemporaryFiles()
 
         assertFalse(staged.exists())
         assertFalse(partial.exists())
+        assertFalse(scannerSession.exists())
+        assertFalse(scannerCapture.exists())
         assertTrue(completed.exists())
         completed.delete()
     }
