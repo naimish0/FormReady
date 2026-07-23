@@ -256,7 +256,10 @@
     <string name="settings_version">App version: %1$s</string>
     <string name="settings_licenses_summary">Open-source licences: AndroidX, Kotlin, Hilt, Room, DataStore, and WorkManager are used under their respective permissive licences.</string>
     <string name="settings_export_diagnostics">Export local diagnostics</string>
-    <string name="settings_support_unavailable">Support contact: pending publication with the release listing</string>
+    <string name="settings_support">Contact support</string>
+    <string name="settings_privacy_policy">Open privacy policy</string>
+    <string name="settings_privacy_policy_pending">Privacy policy link: pending public HTTPS publication</string>
+    <string name="privacy_policy_url" translatable="false"></string>
     <string name="presets_edit">Edit</string>
     <string name="presets_copy_name">%1$s copy</string>
     <string name="preset_type_photo">Photo</string>

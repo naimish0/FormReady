@@ -84,15 +84,31 @@ Use the Phase 1 branch and PR pattern for every numbered phase:
     Android 16; five Compose navigation tests need rerun because the device was locked/dozing and
     then disconnected. Hindi remains blocked on native-speaker translation/review and is not
     exposed in the locale picker.
-- [ ] Phase 5 — Monetization decision, launch QA, and release assets
+- [x] Phase 5 — Monetization decision, launch QA, and release assets
+  - Launch monetization is explicitly disabled behind an injected `AdManager` boundary backed by
+    `NoOpAdManager`; the app has no ad, consent, Billing, analytics, network, or advertising-ID
+    SDK/permission.
+  - Production-ready store copy, privacy policy source, Data Safety guidance, SDK/data inventory,
+    screenshot plan, support route, Play icon, feature graphic, and reproducible asset scripts are
+    recorded without organization-affiliation or guaranteed-acceptance claims.
+  - A seed Baseline Profile is packaged. Bundletool validation, a 16 KB zip-alignment check, and
+    ELF inspection across every packaged ABI passed; all transitive AndroidX native-library load
+    segments use `0x4000` alignment.
+  - Verification on 2026-07-23: unit tests, standalone `lintDebug`, `assembleDebug`, and
+    minified/R8 `bundleRelease` passed. The current physical device was unavailable for a fresh
+    Phase 5 connected run, so the locked/dozing Phase 4 Compose rerun remains open.
+  - Production publication remains correctly blocked on an approved public HTTPS privacy-policy
+    URL, production upload-key signing, Play Console declarations/testing, final screenshots, and
+    the device/accessibility/performance matrix recorded in the release checklist.
 
 ## Next-run handoff
 
-Continue FormReady from this file and the shared Phase 4 checkpoint. Implement only Phase 5
-monetization decisions, launch QA, policy/release documentation, and release assets without
-reworking completed processing or supporting flows. Do not add ad/consent production SDKs or
-credentials unless approved configuration exists. Preserve single-module package boundaries and
-run the complete repository done-criteria gates.
+All numbered launch implementation phases are complete. Do not automatically begin the post-v1
+roadmap: each post-v1 item requires its own approved scope and branch. The next release run should
+close the external/manual gates in `docs/release/play-release-checklist.md`, publish the approved
+privacy-policy source at a stable public HTTPS URL, set `privacy_policy_url`, capture only
+synthetic-fixture screenshots, configure production signing outside version control, and rerun
+the complete repository and device matrices immediately before Play upload.
 
 ## 2026-07-23 single-module conversion checkpoint
 
@@ -104,7 +120,9 @@ run the complete repository done-criteria gates.
 
 ## Known release gates
 
-- Hindi resources and native-speaker approval are not part of Phase 0 and remain required before advertising Hindi support.
-- API 24 compatibility, API 36 behaviour, full accessibility, large-fixture, Baseline Profile, and Macrobenchmark evidence remain future-phase release work. Phase 0 startup/navigation passed on a physical Android 16 device.
-- No ad, consent, Billing, PDF, camera, or ML SDK is currently shipped. AndroidX
-  ExifInterface is the only image-specific dependency and performs local metadata inspection.
+- Hindi resources and native-speaker approval remain required before advertising Hindi support.
+- API 24 compatibility, the complete API 36 UI rerun, full accessibility, large-fixture,
+  generated Baseline Profile, and Macrobenchmark evidence remain release gates. Earlier
+  startup/navigation and processor suites passed on a physical Android 16 device.
+- No ad, consent, Billing, analytics, network, camera, or ML SDK is shipped. PDF processing uses
+  stable platform APIs; AndroidX ExifInterface performs local image metadata inspection.

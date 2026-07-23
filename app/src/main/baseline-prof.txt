@@ -1,0 +1,17 @@
+# Manually seeded startup and critical-navigation classes. Replace with measured generated rules
+# when the required unlocked API 33+ benchmark device or emulator is available.
+Lcom/rameshta/formready/FormReadyApplication;
+Lcom/rameshta/formready/MainActivity;
+Lcom/rameshta/formready/MainViewModel;
+Lcom/rameshta/formready/ui/FormReadyAppKt;
+Lcom/rameshta/formready/feature/home/HomeScreenKt;
+Lcom/rameshta/formready/feature/photo/PhotoScreenKt;
+Lcom/rameshta/formready/feature/photo/PhotoViewModel;
+Lcom/rameshta/formready/feature/signature/SignatureScreenKt;
+Lcom/rameshta/formready/feature/signature/SignatureViewModel;
+Lcom/rameshta/formready/feature/pdf/PdfScreenKt;
+Lcom/rameshta/formready/feature/pdf/PdfViewModel;
+Lcom/rameshta/formready/feature/presets/PresetsScreenKt;
+Lcom/rameshta/formready/feature/presets/PresetsViewModel;
+Lcom/rameshta/formready/feature/history/HistoryScreenKt;
+Lcom/rameshta/formready/feature/settings/SettingsScreenKt;

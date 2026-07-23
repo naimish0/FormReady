@@ -7,7 +7,7 @@
 | Processing | Bounded private staging; JPEG/PNG/WebP inspection; corrupt, zero-byte and animated rejection; all EXIF orientations; exact/maximum geometry; native DPI reopen; target-unreachable cleanup; expired/explicit temporary cleanup; completed-output preservation; synthetic 48 MP processing; signature cleanup/crop/recolour/preview; mixed-page PDF inspection, lazy preview, flattened reopen/render validation, unreachable PDF targets, and images-to-PDF | Low-storage provider fixture and API 24 execution |
 | UI | Physical-device Home/Settings, Photo requirement/editor, Signature import/camera/drawing, and honest PDF mode/navigation tests; responsive Phase 4 action groups | Phase 4 UI rerun on an awake device; 200% font, TalkBack, RTL, reviewed Hindi, rotation |
 | Privacy | Manifest audit; backup/cleartext disabled; metadata removal test; private partial cleanup; diagnostic export allowlist test; opt-in recents screenshot protection | Airplane-mode run |
-| Build | Debug assembly, unit tests, lint, release/R8 bundle, debug APK install | Signed AAB validation, 16 KB native audit |
+| Build | Debug assembly, unit tests, lint, release/R8 bundle, debug APK install, unsigned AAB Bundletool validation, seed Baseline Profile packaging, universal-APK 16 KB zip alignment, and packaged ELF load-segment alignment | Production-signed AAB/APK validation and generated Baseline Profile/Macrobenchmark evidence |
 
 ## Phase 1 reference run — 2026-07-23
 
@@ -56,6 +56,20 @@
   successful baseline is the Phase 3 run and they require an awake-device rerun.
 - Hindi resources remain intentionally unpopulated and excluded from the locale picker until a
   native-speaker review is available. Machine translations were not shipped.
+
+## Phase 5 reference run — 2026-07-23
+
+- Host: macOS, Gradle wrapper 9.3.1, AGP 9.1.1, JDK-compatible daemon toolchain, Build Tools
+  36.1.0, NDK 28.2, and Bundletool 1.18.3.
+- Commands: `./gradlew test`, `./gradlew :app:lintDebug`,
+  `./gradlew :app:assembleDebug`, and `./gradlew :app:bundleRelease`.
+- Result: all local gates passed. Bundletool accepted the AAB; its locally debug-signed universal
+  inspection APK passed `zipalign -c -P 16`, and every packaged AndroidX native library's ELF
+  `LOAD` segment used `0x4000` alignment across arm64-v8a, armeabi-v7a, x86, and x86_64.
+- The AAB contains the seed Baseline Profile. Automated generation and Macrobenchmark evidence
+  still require an unlocked API 33+ reference device or emulator.
+- No fresh connected run is claimed: the Samsung SM-S928B disconnected during the Phase 4
+  locked/dozing UI retry and was unavailable for Phase 5.
 
 ## Required device matrix before release
 

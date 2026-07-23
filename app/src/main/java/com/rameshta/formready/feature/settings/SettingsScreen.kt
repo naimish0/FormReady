@@ -55,6 +55,7 @@ fun SettingsScreen(
             context.packageManager.getPackageInfo(context.packageName, 0).versionName
         }.getOrNull() ?: "—"
     }
+    val privacyPolicyUrl = stringResource(R.string.privacy_policy_url)
     val diagnostics = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("text/plain"),
     ) { uri ->
@@ -237,10 +238,30 @@ fun SettingsScreen(
             SettingHeading(stringResource(R.string.settings_about))
             Text(stringResource(R.string.settings_version, versionName))
             Text(stringResource(R.string.settings_licenses_summary))
+            if (privacyPolicyUrl.isNotBlank()) {
+                Button(onClick = {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(privacyPolicyUrl)))
+                }) {
+                    Text(stringResource(R.string.settings_privacy_policy))
+                }
+            } else {
+                Text(stringResource(R.string.settings_privacy_policy_pending))
+            }
             Button(onClick = {
                 diagnostics.launch("formready-diagnostics.txt")
             }) { Text(stringResource(R.string.settings_export_diagnostics)) }
-            Text(stringResource(R.string.settings_support_unavailable))
+            Button(onClick = {
+                runCatching {
+                    context.startActivity(
+                        Intent(
+                            Intent.ACTION_SENDTO,
+                            Uri.parse("mailto:naimish.app@gmail.com"),
+                        ),
+                    )
+                }
+            }) {
+                Text(stringResource(R.string.settings_support))
+            }
         }
     }
     pendingAction?.let { action ->
