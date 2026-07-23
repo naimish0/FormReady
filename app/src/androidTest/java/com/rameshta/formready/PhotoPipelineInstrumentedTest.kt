@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.pdf.PdfDocument
 import androidx.exifinterface.media.ExifInterface
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -15,6 +16,8 @@ import com.rameshta.formready.core.model.PhysicalUnit
 import com.rameshta.formready.core.model.OutputFormat
 import com.rameshta.formready.core.model.OutputSpecification
 import com.rameshta.formready.core.model.ProcessingPlan
+import com.rameshta.formready.core.model.PdfCompressionMode
+import com.rameshta.formready.core.model.PdfOptions
 import com.rameshta.formready.core.model.Readiness
 import com.rameshta.formready.core.model.SignatureOptions
 import com.rameshta.formready.core.model.readiness
@@ -25,6 +28,8 @@ import com.rameshta.formready.core.processing.PhotoProcessingException
 import com.rameshta.formready.core.processing.PngDpiMetadata
 import com.rameshta.formready.core.processing.PhotoPlanCodec
 import com.rameshta.formready.core.processing.PrivateWorkspaceCleaner
+import com.rameshta.formready.core.processing.PdfProcessingException
+import com.rameshta.formready.core.processing.PlatformPdfEngine
 import com.rameshta.formready.core.processing.SignatureBitmapProcessor
 import java.io.File
 import java.util.UUID
@@ -34,6 +39,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -222,6 +228,14 @@ class PhotoPipelineInstrumentedTest {
                 cropRight = 0.9f,
                 cropBottom = 0.8f,
             ),
+            pdfOptions = PdfOptions(
+                compressionMode = PdfCompressionMode.STRONG_FLATTEN,
+                flatteningAcknowledged = true,
+                initialDpi = 180,
+                minimumDpi = 120,
+                minimumJpegQuality = 45,
+                maximumPasses = 5,
+            ),
         )
 
         val restored = PhotoPlanCodec.decode(PhotoPlanCodec.encode(original))
@@ -288,12 +302,21 @@ class PhotoPipelineInstrumentedTest {
             writeText("complete")
             setLastModified(System.currentTimeMillis() - PrivateWorkspaceCleaner.RETENTION_MILLIS)
         }
+        val expiredImagesToPdf = File(
+            context.noBackupFilesDir,
+            "images-to-pdf/${UUID.randomUUID()}",
+        ).apply {
+            mkdirs()
+            File(this, "page").writeText("synthetic")
+            setLastModified(System.currentTimeMillis() - PrivateWorkspaceCleaner.RETENTION_MILLIS)
+        }
 
         PrivateWorkspaceCleaner(context).removeAbandonedPartials()
 
         assertFalse(oldPartial.exists())
         assertTrue(recentPartial.exists())
         assertTrue(completed.exists())
+        assertFalse(expiredImagesToPdf.exists())
         recentPartial.delete()
         completed.delete()
     }
@@ -445,6 +468,95 @@ class PhotoPipelineInstrumentedTest {
         assertFalse(destination.exists())
     }
 
+    @Test
+    fun pdfInspectionPreviewFlatteningAndReopenValidation() = runBlocking {
+        val source = writeSyntheticPdf("mixed.pdf", listOf(612 to 792, 792 to 612))
+        val pdfEngine = PlatformPdfEngine()
+        val inspected = pdfEngine.inspect(source)
+        assertEquals(2, inspected.pageCount)
+        assertFalse(inspected.pages[0].isLandscape)
+        assertTrue(inspected.pages[1].isLandscape)
+
+        val preview = pdfEngine.renderPreview(source, 1, 512)
+        assertTrue(maxOf(preview.width, preview.height) <= 512)
+        preview.recycle()
+
+        val destination = File(root, "flattened.pdf")
+        val prepared = pdfEngine.flatten(
+            source,
+            destination,
+            ProcessingPlan(
+                jobId = UUID.randomUUID(),
+                transforms = emptyList(),
+                output = OutputSpecification(
+                    format = OutputFormat.PDF,
+                    maximumBytes = 2_000_000,
+                ),
+                hardRuleIds = setOf("pdf.readable", "pdf.maximum_bytes"),
+                advisoryRuleIds = setOf("pdf.flattened"),
+                pdfOptions = PdfOptions(
+                    compressionMode = PdfCompressionMode.STRONG_FLATTEN,
+                    flatteningAcknowledged = true,
+                ),
+            ),
+        )
+        assertEquals(2, prepared.pageCount)
+        assertEquals(inspected.pages, prepared.pages)
+        assertTrue(destination.length() <= 2_000_000)
+        assertEquals(2, pdfEngine.inspect(destination).pageCount)
+    }
+
+    @Test
+    fun pdfStrongCompressionRejectsUnreachableTarget() = runBlocking {
+        val source = writeSyntheticPdf("unreachable.pdf", listOf(612 to 792))
+        val destination = File(root, "unreachable-output.pdf")
+        try {
+            PlatformPdfEngine().flatten(
+                source,
+                destination,
+                ProcessingPlan(
+                    jobId = UUID.randomUUID(),
+                    transforms = emptyList(),
+                    output = OutputSpecification(
+                        format = OutputFormat.PDF,
+                        maximumBytes = 100,
+                    ),
+                    hardRuleIds = emptySet(),
+                    advisoryRuleIds = emptySet(),
+                    pdfOptions = PdfOptions(
+                        compressionMode = PdfCompressionMode.STRONG_FLATTEN,
+                        flatteningAcknowledged = true,
+                    ),
+                ),
+            )
+            fail("Expected target-unreachable failure")
+        } catch (error: PdfProcessingException) {
+            assertEquals(PdfProcessingException.Code.TARGET_UNREACHABLE, error.code)
+        }
+        assertFalse(destination.exists())
+    }
+
+    @Test
+    fun imagesToPdfPreservesImageOrderAndPageCount() = runBlocking {
+        val first = Bitmap.createBitmap(320, 240, Bitmap.Config.ARGB_8888).apply {
+            eraseColor(Color.RED)
+        }.write("page-one.png", Bitmap.CompressFormat.PNG)
+        val second = Bitmap.createBitmap(240, 320, Bitmap.Config.ARGB_8888).apply {
+            eraseColor(Color.BLUE)
+        }.write("page-two.png", Bitmap.CompressFormat.PNG)
+        val destination = File(root, "images.pdf")
+
+        val result = PlatformPdfEngine().imagesToPdf(
+            listOf(first, second),
+            destination,
+        )
+
+        assertEquals(2, result.pageCount)
+        assertTrue(result.pages[0].isLandscape)
+        assertFalse(result.pages[1].isLandscape)
+        assertEquals(2, PlatformPdfEngine().inspect(destination).pageCount)
+    }
+
     private fun exactPlan(
         format: OutputFormat,
         maximumBytes: Long = 500_000,
@@ -487,6 +599,36 @@ class PhotoPipelineInstrumentedTest {
                 )
             }
         }
+    }
+
+    private fun writeSyntheticPdf(
+        name: String,
+        pages: List<Pair<Int, Int>>,
+    ): File {
+        val file = File(root, name)
+        val document = PdfDocument()
+        try {
+            pages.forEachIndexed { index, (width, height) ->
+                val page = document.startPage(
+                    PdfDocument.PageInfo.Builder(width, height, index + 1).create(),
+                )
+                page.canvas.drawColor(Color.WHITE)
+                page.canvas.drawText(
+                    "Synthetic page ${index + 1}",
+                    40f,
+                    80f,
+                    Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                        color = Color.BLACK
+                        textSize = 24f
+                    },
+                )
+                document.finishPage(page)
+            }
+            file.outputStream().use(document::writeTo)
+        } finally {
+            document.close()
+        }
+        return file
     }
 
     private fun Bitmap.write(name: String, format: Bitmap.CompressFormat): File =

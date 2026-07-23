@@ -65,4 +65,21 @@ class ProcessingModelsTest {
             )
         }
     }
+
+    @Test
+    fun strongPdfCompressionRequiresAcknowledgementAndBoundedPolicy() {
+        assertThrows(IllegalArgumentException::class.java) {
+            PdfOptions(compressionMode = PdfCompressionMode.STRONG_FLATTEN)
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            PdfOptions(flatteningAcknowledged = true, maximumPasses = 7)
+        }
+        assertEquals(
+            PdfCompressionMode.STRONG_FLATTEN,
+            PdfOptions(
+                compressionMode = PdfCompressionMode.STRONG_FLATTEN,
+                flatteningAcknowledged = true,
+            ).compressionMode,
+        )
+    }
 }

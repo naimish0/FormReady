@@ -25,6 +25,8 @@ import com.rameshta.formready.feature.history.HistoryScreen
 import com.rameshta.formready.feature.home.HomeScreen
 import com.rameshta.formready.feature.photo.PhotoRoute
 import com.rameshta.formready.feature.photo.PhotoViewModel
+import com.rameshta.formready.feature.pdf.PdfRoute
+import com.rameshta.formready.feature.pdf.PdfViewModel
 import com.rameshta.formready.feature.presets.PresetsScreen
 import com.rameshta.formready.feature.settings.SettingsScreen
 import com.rameshta.formready.feature.signature.SignatureRoute
@@ -49,6 +51,7 @@ fun FormReadyApp(
     onDynamicColourChanged: (Boolean) -> Unit,
     photoViewModel: PhotoViewModel,
     signatureViewModel: SignatureViewModel,
+    pdfViewModel: PdfViewModel,
     recentJobs: List<ProcessingJob>,
     recentArtifactsByJob: Map<String, com.rameshta.formready.core.model.OutputArtifact>,
 ) {
@@ -60,7 +63,7 @@ fun FormReadyApp(
         modifier = Modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            if (currentDestination?.route !in setOf(PHOTO_ROUTE, SIGNATURE_ROUTE)) {
+            if (currentDestination?.route !in setOf(PHOTO_ROUTE, SIGNATURE_ROUTE, PDF_ROUTE)) {
                 NavigationBar {
                     TopLevelDestination.entries.forEach { destination ->
                     val selected = currentDestination?.hierarchy
@@ -98,6 +101,7 @@ fun FormReadyApp(
                     HomeScreen(
                         onPreparePhoto = { navController.navigate(PHOTO_ROUTE) },
                         onPrepareSignature = { navController.navigate(SIGNATURE_ROUTE) },
+                        onPreparePdf = { navController.navigate(PDF_ROUTE) },
                     )
                 }
                 composable(TopLevelDestination.PRESETS.route) { PresetsScreen() }
@@ -130,6 +134,12 @@ fun FormReadyApp(
                         viewModel = signatureViewModel,
                     )
                 }
+                composable(PDF_ROUTE) {
+                    PdfRoute(
+                        onBack = { navController.popBackStack() },
+                        viewModel = pdfViewModel,
+                    )
+                }
             }
         }
     }
@@ -137,3 +147,4 @@ fun FormReadyApp(
 
 private const val PHOTO_ROUTE = "photo"
 private const val SIGNATURE_ROUTE = "signature"
+private const val PDF_ROUTE = "pdf"

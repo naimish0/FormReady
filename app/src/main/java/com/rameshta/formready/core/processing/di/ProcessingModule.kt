@@ -11,10 +11,15 @@ import com.rameshta.formready.core.processing.ImageTransformEngine
 import com.rameshta.formready.core.processing.JobProcessor
 import com.rameshta.formready.core.processing.PhotoJobProcessor
 import com.rameshta.formready.core.processing.PhotoOutputAccess
+import com.rameshta.formready.core.processing.PdfEngine
+import com.rameshta.formready.core.processing.PdfJobProcessor
+import com.rameshta.formready.core.processing.PdfPreparationService
+import com.rameshta.formready.core.processing.PlatformPdfEngine
 import com.rameshta.formready.core.processing.PhotoPreparationService
 import com.rameshta.formready.core.processing.PrivateInputStager
 import com.rameshta.formready.core.processing.PrivatePhotoOutputAccess
 import com.rameshta.formready.core.processing.PrivatePhotoPreparationService
+import com.rameshta.formready.core.processing.PrivatePdfPreparationService
 import com.rameshta.formready.core.processing.ProcessingScheduler
 import com.rameshta.formready.core.processing.SignatureJobProcessor
 import com.rameshta.formready.core.processing.SignatureProcessor
@@ -68,6 +73,16 @@ abstract class ProcessingBindingsModule {
 
     @Binds
     @Singleton
+    abstract fun bindPdfEngine(implementation: PlatformPdfEngine): PdfEngine
+
+    @Binds
+    @Singleton
+    abstract fun bindPdfPreparationService(
+        implementation: PrivatePdfPreparationService,
+    ): PdfPreparationService
+
+    @Binds
+    @Singleton
     abstract fun bindProcessingScheduler(
         implementation: WorkManagerProcessingScheduler,
     ): ProcessingScheduler
@@ -82,6 +97,10 @@ abstract class ProcessingBindingsModule {
     @Binds
     @IntoSet
     abstract fun bindSignatureJobProcessor(implementation: SignatureJobProcessor): JobProcessor
+
+    @Binds
+    @IntoSet
+    abstract fun bindPdfJobProcessor(implementation: PdfJobProcessor): JobProcessor
 }
 
 @Module

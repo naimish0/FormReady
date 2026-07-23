@@ -54,17 +54,33 @@ Use the Phase 1 branch and PR pattern for every numbered phase:
     navigation. The release dependency inventory is unchanged, and the merged manifests contain
     only WorkManager `WAKE_LOCK`, `RECEIVE_BOOT_COMPLETED`, and the AndroidX dynamic-receiver
     signature permission; backup and cleartext remain disabled.
-- [ ] Phase 3 — PDF validation and compression
+- [x] Phase 3 — PDF validation and compression
+  - Private PDF import performs magic-header and platform reopen inspection, reports actual
+    bytes, page count, mixed page sizes/orientations, encryption failures, and bounded detection
+    of forms, links, annotations, and digital signatures; pages render lazily for preview.
+  - Safe compression is truthfully unavailable without a vetted structure-aware engine. Strong
+    compression requires explicit flattening/digital-signature acknowledgement, preserves page
+    order/boxes/orientation, processes one page at a time, uses bounded quality/DPI/pass floors,
+    and reopens and renders every output page before success.
+  - Images-to-PDF, maximum-byte/page validation, durable PDF work/history, process-restorable
+    drafts, cancellation, Save/Open/Share, Prepare Another, and expired private-input cleanup are
+    implemented entirely with stable platform APIs and no new dependency.
+  - Verification on 2026-07-23: unit tests, `lintDebug`, `assembleDebug`, minified/R8
+    `bundleRelease`, and 21 connected tests passed on a Samsung SM-S928B running Android 16.
+    Synthetic coverage includes mixed portrait/landscape inspection, bounded page preview,
+    flattened reopen/render validation, unreachable targets, ordered images-to-PDF, cleanup, plan
+    policy bounds/round-trip, and PDF navigation. Merged manifests and runtime dependencies are
+    unchanged from Phase 2.
 - [ ] Phase 4 — Presets, history, settings, accessibility, and localization
 - [ ] Phase 5 — Monetization decision, launch QA, and release assets
 
 ## Next-run handoff
 
-Continue FormReady from this file and the shared Phase 2 checkpoint. Implement only Phase 3 PDF
-validation and compression without re-auditing completed photo/signature phases. Reuse the
-validated requirement, export, validation, history, private-staging, durable-work, and
-cancellation foundations. Preserve single-module package boundaries and run targeted tests plus
-the repository done-criteria gates.
+Continue FormReady from this file and the shared Phase 3 checkpoint. Implement only Phase 4
+presets, history, settings, accessibility, and localization without re-auditing completed
+photo/signature/PDF processors. Reuse their validated requirement, export, history,
+private-staging, durable-work, and cancellation foundations. Preserve single-module package
+boundaries and run targeted tests plus the repository done-criteria gates.
 
 ## 2026-07-23 single-module conversion checkpoint
 

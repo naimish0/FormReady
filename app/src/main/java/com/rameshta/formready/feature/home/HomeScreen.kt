@@ -25,6 +25,7 @@ import com.rameshta.formready.R
 fun HomeScreen(
     onPreparePhoto: () -> Unit,
     onPrepareSignature: () -> Unit,
+    onPreparePdf: () -> Unit,
 ) {
     val capabilities = listOf(
         R.string.capability_photo_title to R.string.capability_photo_description,
@@ -78,6 +79,7 @@ fun HomeScreen(
                 onClick = when (capability.first) {
                     R.string.capability_photo_title -> onPreparePhoto
                     R.string.capability_signature_title -> onPrepareSignature
+                    R.string.capability_pdf_title -> onPreparePdf
                     else -> null
                 },
             )

@@ -95,7 +95,79 @@ interface SignatureProcessor {
     suspend fun prepare(input: File, destination: File, plan: ProcessingPlan): PreparedPhoto
 }
 
-interface PdfEngine
+data class PdfPageMetadata(
+    val widthPoints: Int,
+    val heightPoints: Int,
+) {
+    val isLandscape: Boolean get() = widthPoints > heightPoints
+}
+
+data class PdfMetadata(
+    val byteCount: Long,
+    val pageCount: Int,
+    val pages: List<PdfPageMetadata>,
+    val encrypted: Boolean,
+    val hasForms: Boolean?,
+    val hasLinks: Boolean?,
+    val hasAnnotations: Boolean?,
+    val hasDigitalSignatures: Boolean?,
+)
+
+data class PreparedPdf(
+    val byteCount: Long,
+    val pageCount: Int,
+    val pages: List<PdfPageMetadata>,
+    val renderDpi: Int,
+    val jpegQuality: Int,
+    val passes: Int,
+    val validationResults: List<ValidationRuleResult>,
+)
+
+class PdfProcessingException(
+    val code: Code,
+    cause: Throwable? = null,
+) : Exception(code.name, cause) {
+    enum class Code {
+        CORRUPT_INPUT,
+        ENCRYPTED_UNSUPPORTED,
+        PAGE_COUNT_UNSAFE,
+        PAGE_DIMENSIONS_UNSAFE,
+        FLATTENING_ACKNOWLEDGEMENT_REQUIRED,
+        TARGET_UNREACHABLE,
+        OUTPUT_WRITE_FAILED,
+        OUTPUT_VALIDATION_FAILED,
+    }
+}
+
+interface PdfEngine {
+    suspend fun inspect(input: File): PdfMetadata
+
+    suspend fun renderPreview(input: File, pageIndex: Int, maximumEdgePx: Int = 1_024): Bitmap
+
+    suspend fun flatten(
+        input: File,
+        destination: File,
+        plan: ProcessingPlan,
+    ): PreparedPdf
+
+    suspend fun imagesToPdf(
+        images: List<File>,
+        destination: File,
+        jpegQuality: Int = 85,
+    ): PreparedPdf
+}
+
+interface PdfPreparationService {
+    suspend fun stageAndInspect(source: Uri, jobId: UUID): PdfMetadata
+
+    suspend fun inspectStaged(jobId: UUID): PdfMetadata
+
+    suspend fun renderPreview(jobId: UUID, pageIndex: Int): Bitmap
+
+    fun stagedRelativePath(jobId: UUID): String
+
+    suspend fun discard(jobId: UUID)
+}
 
 interface OutputValidator {
     suspend fun validate(jobId: UUID, candidate: File): ValidationSummary

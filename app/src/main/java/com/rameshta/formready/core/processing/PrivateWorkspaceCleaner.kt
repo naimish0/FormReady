@@ -25,6 +25,14 @@ class PrivateWorkspaceCleaner @Inject constructor(
             ?.filter(File::isFile)
             ?.filter { file -> nowEpochMillis - file.lastModified() >= RETENTION_MILLIS }
             ?.forEach(File::delete)
+        File(context.noBackupFilesDir, IMAGES_TO_PDF_DIRECTORY)
+            .listFiles()
+            ?.asSequence()
+            ?.filter(File::isDirectory)
+            ?.filter { directory ->
+                nowEpochMillis - directory.lastModified() >= RETENTION_MILLIS
+            }
+            ?.forEach(File::deleteRecursively)
     }
 
     companion object {
@@ -32,5 +40,6 @@ class PrivateWorkspaceCleaner @Inject constructor(
         private const val STAGED_INPUT_DIRECTORY = "staged-inputs"
         private const val PARTIAL_SUFFIX = ".part"
         private const val SIGNATURE_CAPTURE_DIRECTORY = "signature-captures"
+        private const val IMAGES_TO_PDF_DIRECTORY = "images-to-pdf"
     }
 }

@@ -114,6 +114,31 @@ data class SignatureOptions(
     }
 }
 
+enum class PdfCompressionMode {
+    VALIDATE_ONLY,
+    STRONG_FLATTEN,
+}
+
+data class PdfOptions(
+    val compressionMode: PdfCompressionMode = PdfCompressionMode.VALIDATE_ONLY,
+    val flatteningAcknowledged: Boolean = false,
+    val initialDpi: Int = 150,
+    val minimumDpi: Int = 120,
+    val minimumJpegQuality: Int = 40,
+    val maximumPasses: Int = 6,
+) {
+    init {
+        require(initialDpi in 120..300)
+        require(minimumDpi in 72..initialDpi)
+        require(minimumJpegQuality in 40..95)
+        require(maximumPasses in 1..6)
+        require(
+            compressionMode != PdfCompressionMode.STRONG_FLATTEN ||
+                flatteningAcknowledged,
+        )
+    }
+}
+
 data class ProcessingPlan(
     val jobId: UUID,
     val transforms: List<NormalizedTransform>,
@@ -121,6 +146,7 @@ data class ProcessingPlan(
     val hardRuleIds: Set<String>,
     val advisoryRuleIds: Set<String>,
     val signatureOptions: SignatureOptions? = null,
+    val pdfOptions: PdfOptions? = null,
 )
 
 data class ProcessingJob(
