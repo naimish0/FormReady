@@ -13,6 +13,8 @@ Re-run it for every release candidate.
 | AndroidX/Compose/Hilt/coroutines/ExifInterface | In-process UI, dependency injection, local image metadata | App runtime and image preparation | None | Process/local file lifecycle | Not collected/shared |
 | ML Kit Document Scanner | Scanner module delivery; SDK device/app information and performance/usage metrics | On-device multi-page scanning | Document images stay on-device; Google documents SDK metrics and occasional module/update communication | Google Play services/SDK controlled | Disclose the current Google SDK data behaviour in Play Console |
 | Bundled ML Kit Text Recognition | On-device page pixels; SDK device/app information and performance/usage metrics | Latin and Devanagari text extraction | Page pixels and OCR results stay on-device; SDK metrics may be transmitted | OCR text remains in memory until user export | Disclose the current Google SDK data behaviour in Play Console |
+| Bundled ML Kit Face Detection | On-device portrait pixels and ephemeral face landmarks/angles | Placement guidance only; no recognition or identity matching | Portrait pixels and detection results stay on-device; SDK metrics may be transmitted | Guidance is not persisted | Disclose ML Kit metrics and on-device face processing |
+| Bundled ML Kit Selfie Segmentation (beta) | On-device portrait pixels and ephemeral person mask | Optional background replacement | Portrait pixels and masks stay on-device; SDK metrics may be transmitted | Mask exists in memory; only explicit normalized user refinement strokes enter the local job plan | Disclose ML Kit metrics and on-device processing |
 
 ## Explicitly absent
 

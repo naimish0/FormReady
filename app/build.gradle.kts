@@ -75,6 +75,8 @@ dependencies {
     implementation(libs.google.mlkit.document.scanner)
     implementation(libs.google.mlkit.text.recognition)
     implementation(libs.google.mlkit.text.recognition.devanagari)
+    implementation(libs.google.mlkit.face.detection)
+    implementation(libs.google.mlkit.selfie.segmentation)
     ksp(libs.androidx.room.compiler)
     ksp(libs.androidx.hilt.compiler)
     ksp(libs.dagger.hilt.compiler)

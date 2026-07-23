@@ -25,6 +25,10 @@ results are processed on-device, while the SDK may contact Google for module del
 model/accelerator compatibility, and diagnostic or usage metrics. The final Play Data Safety form
 must reflect Google’s current ML Kit disclosure.
 
+Optional ID-photo guidance and background replacement also use bundled ML Kit face detection and
+person segmentation. FormReady does not identify people, compare faces, create embeddings, or
+persist face landmarks or segmentation masks.
+
 ## Security and retention
 
 Backup and cleartext traffic are disabled. Selected content is staged in private storage with

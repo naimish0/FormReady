@@ -47,6 +47,12 @@ class PrivateWorkspaceCleaner @Inject constructor(
             ?.filter(File::isFile)
             ?.filter { file -> nowEpochMillis - file.lastModified() >= RETENTION_MILLIS }
             ?.forEach(File::delete)
+        File(context.cacheDir, ID_PHOTO_CAPTURE_DIRECTORY)
+            .listFiles()
+            ?.asSequence()
+            ?.filter(File::isFile)
+            ?.filter { file -> nowEpochMillis - file.lastModified() >= RETENTION_MILLIS }
+            ?.forEach(File::delete)
     }
 
     /** Removes only private, reproducible working files; exported outputs are never touched. */
@@ -56,6 +62,7 @@ class PrivateWorkspaceCleaner @Inject constructor(
         File(context.cacheDir, SIGNATURE_CAPTURE_DIRECTORY).deleteRecursively()
         File(context.noBackupFilesDir, SCANNER_SESSION_DIRECTORY).deleteRecursively()
         File(context.cacheDir, SCANNER_CAPTURE_DIRECTORY).deleteRecursively()
+        File(context.cacheDir, ID_PHOTO_CAPTURE_DIRECTORY).deleteRecursively()
         File(context.filesDir, PrivatePhotoOutputAccess.OUTPUT_DIRECTORY)
             .listFiles()
             ?.filter { it.isFile && it.name.endsWith(PARTIAL_SUFFIX) }
@@ -70,5 +77,6 @@ class PrivateWorkspaceCleaner @Inject constructor(
         private const val IMAGES_TO_PDF_DIRECTORY = "images-to-pdf"
         private const val SCANNER_SESSION_DIRECTORY = "scanner-sessions"
         private const val SCANNER_CAPTURE_DIRECTORY = "scanner-captures"
+        private const val ID_PHOTO_CAPTURE_DIRECTORY = "id-photo-captures"
     }
 }

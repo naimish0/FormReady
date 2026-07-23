@@ -12,5 +12,8 @@ Phase 6 includes Google ML Kit Document Scanner and bundled Latin/Devanagari Tex
 under the Google APIs and ML Kit terms. The scanner module is delivered through Google Play
 services; OCR model binaries are packaged in the app.
 
+Phase 7 also bundles ML Kit Face Detection 16.1.7 and the beta ML Kit Selfie Segmentation
+16.0.0-beta6 model under those terms.
+
 No GPL/AGPL PDF engine, font/image asset pack, advertising/consent SDK, Billing SDK, general
 network client or app-authored analytics SDK is included.

@@ -82,4 +82,16 @@ class ProcessingModelsTest {
             ).compressionMode,
         )
     }
+
+    @Test
+    fun idPhotoMaskRefinementIsNormalizedAndBounded() {
+        val stroke = MaskStroke(x = 0.4f, y = 0.6f, radius = 0.03f, restore = true)
+        assertEquals(1, IdPhotoOptions(maskStrokes = listOf(stroke)).maskStrokes.size)
+        assertThrows(IllegalArgumentException::class.java) {
+            MaskStroke(x = -0.1f, y = 0.5f, radius = 0.03f, restore = false)
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            IdPhotoOptions(maskStrokes = List(501) { stroke })
+        }
+    }
 }

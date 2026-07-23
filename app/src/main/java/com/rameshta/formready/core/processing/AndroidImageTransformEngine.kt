@@ -31,6 +31,7 @@ import kotlin.math.roundToInt
 class AndroidImageTransformEngine @Inject constructor(
     private val metadataReader: ImageMetadataReader,
     private val signatureBitmapProcessor: SignatureBitmapProcessor,
+    private val personSegmentationEngine: PersonSegmentationEngine,
 ) : ImageTransformEngine {
     override suspend fun prepare(
         input: File,
@@ -55,6 +56,12 @@ class AndroidImageTransformEngine @Inject constructor(
 
             cleaned = plan.signatureOptions?.let { options ->
                 signatureBitmapProcessor.process(oriented, options)
+            } ?: plan.idPhotoOptions?.takeIf { it.replaceBackground }?.let { options ->
+                personSegmentationEngine.replaceBackground(
+                    source = oriented,
+                    backgroundArgb = options.backgroundArgb,
+                    strokes = options.maskStrokes,
+                )
             } ?: oriented
             if (cleaned !== oriented) oriented.recycle()
             oriented = null

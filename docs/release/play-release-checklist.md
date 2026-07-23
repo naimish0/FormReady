@@ -24,6 +24,8 @@ Play Console action.
   100-page PDF and airplane-mode release evidence.
 - [ ] Rerun Compose navigation tests on an awake device; run TalkBack, 200% font, RTL/pseudo-locale,
   rotation, phone, 7-inch, 10-inch and foldable checks.
+- [ ] Run synthetic Phase 7 one/no/multiple-face, pose, segmentation edge, manual-mask, camera
+  fallback, exact export and 4×6/A4 physical print-sheet checks on a reference device.
 - [ ] Validate the final signed AAB and Play-generated device APK set using the upload key/Play App
   Signing configuration.
 

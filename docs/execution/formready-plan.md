@@ -112,7 +112,17 @@ Use the Phase 1 branch and PR pattern for every numbered phase:
     inspection passed. No connected device was available.
   - ML Kit adds the sole `INTERNET` permission for module delivery/SDK metrics; privacy, Data
     Safety, dependency and licence records were updated. Content and OCR results remain on-device.
-- [ ] Phase 7 — ID/passport photo workflow and background replacement
+- [x] Phase 7 — ID/passport photo workflow and background replacement
+  - ID mode reuses the exact photo transform/export pipeline, adds installed-camera capture through
+    a private FileProvider URI, advisory on-device one-face/placement guidance, and explicit generic
+    defaults without claiming official acceptance.
+  - Optional bundled on-device segmentation supports white, off-white, and light-blue backgrounds,
+    an untransformed normalized erase/restore mask editor, preview, and unchanged-background fallback.
+  - 4×6-inch and A4 print-sheet PDFs support 2/4/6/8 copies, cut guides, exact PDF point sizing,
+    reopened validation, and Actual size / 100% print instructions.
+  - Verification on 2026-07-23: 28 unit tests, `lintDebug`, `assembleDebug`, minified/R8
+    `bundleRelease`, Bundletool validation, universal APK 16 KB ZIP alignment, and native ELF
+    inspection passed. No connected-device pass is claimed because the available device is offline.
 - [ ] Phase 8 — Structure-preserving PDF page operations
 - [ ] Phase 9 — Bounded batch processing
 - [ ] Phase 10 — Optional lifetime Pro purchase
@@ -121,7 +131,7 @@ Use the Phase 1 branch and PR pattern for every numbered phase:
 
 The user commissioned the complete post-v1 roadmap on 2026-07-23. Continue automatically through
 Phases 6–10 using the per-phase Git workflow above. Complete, verify, publish, and merge exactly one
-phase before creating the next phase branch. Phase 6 is the current phase.
+phase before creating the next phase branch. Phase 8 is the current phase.
 
 ## 2026-07-23 single-module conversion checkpoint
 

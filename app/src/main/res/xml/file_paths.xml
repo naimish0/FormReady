@@ -9,4 +9,7 @@
     <cache-path
         name="temporary_scanner_capture"
         path="scanner-captures/" />
+    <cache-path
+        name="temporary_id_photo_capture"
+        path="id-photo-captures/" />
 </paths>
