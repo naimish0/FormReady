@@ -6,13 +6,15 @@ approval. “Ready” means only that the output satisfies requirements entered 
 
 ## Safety-critical terminology
 
-- Keep `px`, `KB`, `MB`, `KiB`, `MiB`, `DPI`, `JPEG`, `PNG`, and `PDF` recognizable.
+- Keep `KB`, `MB`, `DPI`, `JPEG`, `PNG`, and `PDF` recognizable. Do not introduce raw bytes,
+  `KiB`, or `MiB` into normal screens. Explain pixels and DPI where users enter them.
 - Distinguish maximum file size from current file size and maximum page count from current page
   count.
 - “Prepare another” reuses requirements and safe defaults only; it never reuses the previous source.
 - “Delete history entry” retains an owned exported output. “Delete output and history” removes both.
-- PDF compatibility export can flatten pages and remove searchable text, links, forms, annotations,
-  accessibility information, and digital-signature validity. Do not soften this warning.
+- The smaller image-based PDF option can remove searchable text, links, forms, comments,
+  accessibility information, and digital-signature validity. Keep this warning clear without
+  relying on the technical term “flatten.”
 - Privacy Mode obscures previews in recents/background; it does not encrypt exported files.
 
 ## Layout and grammar

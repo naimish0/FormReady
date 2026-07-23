@@ -60,6 +60,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rameshta.formready.R
 import com.rameshta.formready.core.model.JobStatus
 import com.rameshta.formready.core.model.OutputFormat
+import com.rameshta.formready.ui.format.readableFileSize
+import com.rameshta.formready.ui.format.readableValidationValue
+import com.rameshta.formready.ui.format.userFacingError
 import kotlin.math.roundToInt
 
 @Composable
@@ -228,7 +231,7 @@ private fun SignatureScreen(
                             R.string.signature_input_details,
                             it.widthPx,
                             it.heightPx,
-                            it.byteCount,
+                            readableFileSize(it.byteCount),
                         ),
                     )
                 }
@@ -286,6 +289,10 @@ private fun SignatureScreen(
                         modifier = Modifier.weight(1f),
                     )
                 }
+                Text(
+                    stringResource(R.string.requirement_pixels_help),
+                    style = MaterialTheme.typography.bodySmall,
+                )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     RequirementField(
                         value = state.maximumSizeText,
@@ -300,6 +307,10 @@ private fun SignatureScreen(
                         modifier = Modifier.weight(1f),
                     )
                 }
+                Text(
+                    stringResource(R.string.requirement_dpi_help),
+                    style = MaterialTheme.typography.bodySmall,
+                )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilterChip(
                         selected = state.outputFormat == OutputFormat.PNG,
@@ -456,9 +467,9 @@ private fun SignatureScreen(
             }
         }
         item {
-            state.errorCode?.let {
+            state.errorCode?.let { error ->
                 Text(
-                    stringResource(R.string.signature_error, it),
+                    stringResource(R.string.signature_error, userFacingError(error)),
                     color = MaterialTheme.colorScheme.error,
                 )
             }
@@ -466,7 +477,7 @@ private fun SignatureScreen(
                 JobStatus.QUEUED, JobStatus.RUNNING -> {
                     LinearProgressIndicator(Modifier.fillMaxWidth())
                     OutlinedButton(onClick = viewModel::cancelExport) {
-                        Text(stringResource(R.string.action_cancel))
+                        Text(stringResource(R.string.action_cancel_processing))
                     }
                 }
                 JobStatus.FAILED -> {
@@ -492,11 +503,31 @@ private fun SignatureScreen(
                             R.string.signature_result_details,
                             result.artifact.widthPx ?: 0,
                             result.artifact.heightPx ?: 0,
-                            result.artifact.byteCount,
+                            readableFileSize(result.artifact.byteCount),
                         ),
                     )
-                    result.validationResults.forEach {
-                        Text("${it.outcome.name}: ${it.expected} — ${it.actual}")
+                    result.validationResults.forEach { validation ->
+                        val status = when (validation.outcome) {
+                            com.rameshta.formready.core.model.ValidationOutcome.PASS ->
+                                stringResource(R.string.validation_pass)
+                            com.rameshta.formready.core.model.ValidationOutcome.WARNING ->
+                                stringResource(R.string.validation_warning)
+                            com.rameshta.formready.core.model.ValidationOutcome.FAIL ->
+                                stringResource(R.string.validation_fail)
+                        }
+                        Text(
+                            stringResource(
+                                R.string.validation_required,
+                                status,
+                                readableValidationValue(validation.expected),
+                            ),
+                        )
+                        Text(
+                            stringResource(
+                                R.string.validation_current,
+                                readableValidationValue(validation.actual),
+                            ),
+                        )
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(onClick = onSave, enabled = !state.isSaving) {

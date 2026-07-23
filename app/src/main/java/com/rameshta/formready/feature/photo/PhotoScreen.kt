@@ -68,6 +68,10 @@ import com.rameshta.formready.core.model.JobStatus
 import com.rameshta.formready.core.model.OutputFormat
 import com.rameshta.formready.core.model.ValidationOutcome
 import com.rameshta.formready.core.processing.PrintSheetSize
+import com.rameshta.formready.ui.format.readableFileSize
+import com.rameshta.formready.ui.format.readableGuidance
+import com.rameshta.formready.ui.format.readableValidationValue
+import com.rameshta.formready.ui.format.userFacingError
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -219,7 +223,7 @@ fun PhotoRoute(
                                     R.string.photo_source_details,
                                     metadata.widthPx,
                                     metadata.heightPx,
-                                    metadata.byteCount,
+                                    readableFileSize(metadata.byteCount),
                                     metadata.format.name,
                                 ),
                             )
@@ -268,7 +272,7 @@ fun PhotoRoute(
                                 )
                                 Text(stringResource(R.string.photo_processing_detail))
                                 TextButton(onClick = viewModel::cancelExport) {
-                                    Text(stringResource(R.string.action_cancel))
+                                    Text(stringResource(R.string.action_cancel_processing))
                                 }
                             }
                         }
@@ -427,7 +431,7 @@ fun PhotoRoute(
                                 color = MaterialTheme.colorScheme.error,
                                 style = MaterialTheme.typography.titleMedium,
                             )
-                            Text(stringResource(R.string.photo_error_code, error))
+                            Text(stringResource(R.string.photo_error_code, userFacingError(error)))
                             if (
                                 state.jobStatus == JobStatus.FAILED ||
                                 state.metadata == null
@@ -548,6 +552,10 @@ private fun RequirementsEditor(
                         modifier = Modifier.weight(1f),
                     )
                 }
+                Text(
+                    stringResource(R.string.requirement_pixels_help),
+                    style = MaterialTheme.typography.bodySmall,
+                )
             } else {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     NumberField(
@@ -617,7 +625,7 @@ private fun RequirementsEditor(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                ByteUnit.entries.forEach { unit ->
+                listOf(ByteUnit.KB, ByteUnit.MB).forEach { unit ->
                     FilterChip(
                         selected = state.byteUnit == unit,
                         onClick = { viewModel.setByteUnit(unit) },
@@ -629,9 +637,7 @@ private fun RequirementsEditor(
                 state.exactMaximumBytes?.let {
                     stringResource(
                         R.string.requirement_exact_byte_cap,
-                        state.byteUnit.label,
-                        state.byteUnit.bytesPerUnit,
-                        it,
+                        readableFileSize(it),
                     )
                 } ?: stringResource(R.string.requirement_exact_byte_cap_invalid),
             )
@@ -653,13 +659,7 @@ private fun RequirementsEditor(
                 label = stringResource(R.string.requirement_dpi),
                 modifier = Modifier.fillMaxWidth(),
             )
-            NumberField(
-                value = state.safetyMarginText,
-                onValueChange = viewModel::setSafetyMargin,
-                label = stringResource(R.string.requirement_safety_margin),
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Text(stringResource(R.string.requirement_safety_margin_explanation))
+            Text(stringResource(R.string.requirement_dpi_help))
             Text(stringResource(R.string.photo_background_heading))
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -913,22 +913,10 @@ private fun PhotoEditor(
                         state.widthText,
                         state.heightText,
                         state.outputFormat.name,
-                        state.exactMaximumBytes ?: 0,
+                        readableFileSize(state.exactMaximumBytes ?: 0),
                     ),
                 )
             }
-            Text(
-                stringResource(
-                    R.string.photo_recipe_summary,
-                    state.cropMode.name,
-                    state.zoom,
-                    state.panX,
-                    state.panY,
-                    state.rotationQuarterTurns * 90,
-                    state.straightenDegrees,
-                ),
-                style = MaterialTheme.typography.bodySmall,
-            )
         }
     }
 }
@@ -999,8 +987,10 @@ private fun ResultCard(state: PhotoUiState) {
                     R.string.photo_result_summary,
                     result.artifact.widthPx ?: 0,
                     result.artifact.heightPx ?: 0,
-                    result.artifact.byteCount,
-                    result.artifact.dpi ?: 0,
+                    readableFileSize(result.artifact.byteCount),
+                    result.artifact.dpi?.let {
+                        stringResource(R.string.dpi_value, it)
+                    } ?: stringResource(R.string.dpi_not_set),
                 ),
             )
             HorizontalDivider()
@@ -1012,17 +1002,27 @@ private fun ResultCard(state: PhotoUiState) {
                 }
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
-                        stringResource(R.string.validation_required, status, rule.expected),
+                        stringResource(
+                            R.string.validation_required,
+                            status,
+                            readableValidationValue(rule.expected),
+                        ),
                         style = MaterialTheme.typography.titleSmall,
                     )
                     Text(
-                        stringResource(R.string.validation_current, rule.actual),
+                        stringResource(
+                            R.string.validation_current,
+                            readableValidationValue(rule.actual),
+                        ),
                         style = MaterialTheme.typography.bodyMedium,
                     )
-                    Text(rule.explanation, style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        readableGuidance(rule.explanation),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
                     rule.fixAction?.let { fix ->
                         Text(
-                            stringResource(R.string.validation_fix, fix),
+                            stringResource(R.string.validation_fix, readableGuidance(fix)),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.primary,
                         )
