@@ -34,6 +34,8 @@ the user explicitly saves or shares the validated output.
   cancelled jobs remove candidates, and startup removes only expired partial files.
 - Save reopens and hashes the destination copy; provider failures do not change the private result.
 - No production signing material or identifiers are stored in the repository.
+- Launch monetization is bound to `NoOpAdManager`; it cannot initialize an advertising or consent
+  SDK, make a request, read an advertising identifier, or interrupt a processing result.
 
 ## Remaining processor requirements
 

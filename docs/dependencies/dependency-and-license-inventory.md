@@ -24,8 +24,10 @@ Direct production dependencies through Phase 4:
 JUnit, AndroidX Test, Espresso, Compose test, WorkManager testing, and coroutines-test are
 test-only and Apache 2.0 except JUnit 4 (EPL 1.0).
 
-No native library, ad/consent SDK, billing SDK, PDF engine, camera SDK, image loader, ML model,
-analytics SDK, or network client is shipped through Phase 4. PDF inspection, rendering, and
+AndroidX Graphics Path and DataStore contribute small native libraries for the four packaged ABIs;
+Phase 5 universal-APK checks verified 16 KB ZIP and `0x4000` ELF segment alignment. No app-authored
+native library, ad/consent SDK, billing SDK, PDF engine, camera SDK, image loader, ML model,
+analytics SDK, or network client is shipped. PDF inspection, rendering, and
 flattened generation use Android platform APIs rather than a third-party PDF engine. Signature capture delegates to an
 installed camera activity and therefore adds no camera dependency or permission. Re-run the
 licence and data-behaviour audit whenever the catalog changes.
