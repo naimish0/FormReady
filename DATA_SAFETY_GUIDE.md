@@ -3,7 +3,7 @@
 Do not submit this guide unchanged to Play Console. Reconcile answers against the final signed AAB,
 merged manifest, runtime dependency inventory and current Play questions.
 
-For the Phase 7 build:
+For the Phase 8 build:
 
 - No custom backend or account.
 - `INTERNET` is present only for ML Kit scanner delivery and SDK metrics; Advertising ID, broad

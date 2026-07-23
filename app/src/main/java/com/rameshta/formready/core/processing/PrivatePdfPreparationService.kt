@@ -31,6 +31,8 @@ class PrivatePdfPreparationService @Inject constructor(
 
     override fun stagedRelativePath(jobId: UUID): String = "staged-inputs/$jobId"
 
+    override fun stagedFile(jobId: UUID): File = resolve(stagedRelativePath(jobId))
+
     override suspend fun discard(jobId: UUID) = inputStager.remove(jobId)
 
     private fun resolve(relativePath: String): File {

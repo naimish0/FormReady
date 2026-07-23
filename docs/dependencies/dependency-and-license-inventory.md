@@ -1,6 +1,6 @@
 # Dependency and licence inventory
 
-Direct production dependencies through Phase 7:
+Direct production dependencies through Phase 8:
 
 | Dependency | Version | Purpose | Licence/data behaviour |
 |---|---:|---|---|
@@ -25,6 +25,7 @@ Direct production dependencies through Phase 7:
 | ML Kit Text Recognition Devanagari | 16.0.1 | bundled Devanagari OCR | Google APIs/ML Kit terms; on-device content processing and SDK metrics |
 | ML Kit Face Detection | 16.1.7 | bundled one-face placement guidance | Google APIs/ML Kit terms; on-device processing and SDK metrics |
 | ML Kit Selfie Segmentation | 16.0.0-beta6 | bundled optional person mask | Google APIs/ML Kit terms; beta, on-device processing and SDK metrics |
+| PdfBox-Android | 2.0.27.0 | local structure-preserving PDF page import/reorder/rotation | Apache 2.0; no network; optional Bouncy Castle dependencies excluded |
 
 JUnit, AndroidX Test, Espresso, Compose test, WorkManager testing, and coroutines-test are
 test-only and Apache 2.0 except JUnit 4 (EPL 1.0).
@@ -32,10 +33,11 @@ test-only and Apache 2.0 except JUnit 4 (EPL 1.0).
 AndroidX Graphics Path and DataStore contribute small native libraries for the four packaged ABIs.
 Phase 7 universal-APK checks verified 16 KB ZIP alignment; every 64-bit native library uses
 `0x4000` ELF load-segment alignment. No app-authored
-native library, ad/consent SDK, billing SDK, PDF engine, camera SDK, image loader, or general
+native library, ad/consent SDK, billing SDK, camera SDK, image loader, or general
 network client is shipped. ML Kit adds bundled OCR, face-detection, and segmentation native/model
-assets plus documented SDK metrics. PDF inspection, rendering, and
-flattened generation use Android platform APIs rather than a third-party PDF engine. Signature capture delegates to an
+assets plus documented SDK metrics. PDF inspection, rendering, and flattened generation use
+Android platform APIs; supported structure-preserving page operations use PdfBox-Android.
+Signature capture delegates to an
 installed camera activity and therefore adds no camera dependency or permission. Re-run the
 licence and data-behaviour audit whenever the catalog changes.
 

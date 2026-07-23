@@ -12,6 +12,10 @@ Play Console action.
 - [x] Release runtime dependencies and licences are inventoried.
 - [x] Phase 6 merged release manifest and ML Kit components audited; exact result is recorded in
   `phase-6-validation.md`. Repeat against Play-generated APKs.
+- [x] PdfBox-Android is Apache-2.0 licensed, has no network behaviour, and its unused optional
+  Bouncy Castle dependencies are excluded; encrypted/forms/signed page-operation inputs are blocked.
+- [x] The current Apache PDFBox security page was reviewed for the pinned Android port; FormReady
+  does not ship the embedded-file extraction example affected by the listed 2026 path-traversal CVEs.
 - [x] Backup and cleartext traffic are disabled; no broad storage, camera, Advertising ID,
   notification, location, contacts, microphone or foreground-service permission is present.
 - [x] The universal APK’s transitive AndroidX Graphics Path and DataStore native libraries pass
@@ -26,6 +30,8 @@ Play Console action.
   rotation, phone, 7-inch, 10-inch and foldable checks.
 - [ ] Run synthetic Phase 7 one/no/multiple-face, pose, segmentation edge, manual-mask, camera
   fallback, exact export and 4×6/A4 physical print-sheet checks on a reference device.
+- [ ] Run synthetic Phase 8 merge/split/reorder/rotate/delete fixtures with text, vectors, images,
+  links, annotations, malformed files, low storage, cancellation, and 100-page bounds on devices.
 - [ ] Validate the final signed AAB and Play-generated device APK set using the upload key/Play App
   Signing configuration.
 

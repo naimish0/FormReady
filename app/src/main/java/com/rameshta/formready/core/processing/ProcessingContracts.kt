@@ -125,6 +125,23 @@ data class PreparedPdf(
     val validationResults: List<ValidationRuleResult>,
 )
 
+data class PdfPageSelection(
+    val sourceIndex: Int,
+    val pageIndex: Int,
+    val rotationQuarterTurns: Int = 0,
+) {
+    init {
+        require(sourceIndex >= 0)
+        require(pageIndex >= 0)
+        require(rotationQuarterTurns in 0..3)
+    }
+}
+
+data class PreparedPdfOperation(
+    val metadata: PdfMetadata,
+    val validationResults: List<ValidationRuleResult>,
+)
+
 class PdfProcessingException(
     val code: Code,
     cause: Throwable? = null,
@@ -138,6 +155,7 @@ class PdfProcessingException(
         TARGET_UNREACHABLE,
         OUTPUT_WRITE_FAILED,
         OUTPUT_VALIDATION_FAILED,
+        PROTECTED_STRUCTURE_UNSUPPORTED,
     }
 }
 
@@ -168,7 +186,17 @@ interface PdfPreparationService {
 
     fun stagedRelativePath(jobId: UUID): String
 
+    fun stagedFile(jobId: UUID): File
+
     suspend fun discard(jobId: UUID)
+}
+
+interface StructurePreservingPdfEngine {
+    suspend fun create(
+        sources: List<File>,
+        pages: List<PdfPageSelection>,
+        destination: File,
+    ): PreparedPdfOperation
 }
 
 interface OutputValidator {

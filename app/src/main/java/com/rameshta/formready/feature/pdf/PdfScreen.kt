@@ -31,6 +31,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -56,6 +57,9 @@ fun PdfRoute(
     val images = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenMultipleDocuments(),
     ) { uris -> viewModel.imagesToPdf(uris) }
+    val pageOperations = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenMultipleDocuments(),
+    ) { uris -> viewModel.selectOperationPdfs(uris) }
     val save = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/pdf"),
     ) { uri -> uri?.let(viewModel::saveTo) }
@@ -63,6 +67,8 @@ fun PdfRoute(
     fun back() {
         if (state.hasDraft && state.jobStatus != JobStatus.SUCCEEDED) {
             confirmDiscard = true
+        } else if (state.isOperationMode) {
+            viewModel.discard(onBack)
         } else {
             onBack()
         }
@@ -87,12 +93,19 @@ fun PdfRoute(
         item { Text(stringResource(R.string.pdf_privacy)) }
         item {
             Section(stringResource(R.string.pdf_input)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(onClick = { picker.launch(arrayOf("application/pdf")) }) {
                         Text(stringResource(R.string.pdf_choose))
                     }
                     OutlinedButton(onClick = { images.launch(arrayOf("image/*")) }) {
                         Text(stringResource(R.string.pdf_images_to_pdf))
+                    }
+                    OutlinedButton(
+                        onClick = {
+                            pageOperations.launch(arrayOf("application/pdf"))
+                        },
+                    ) {
+                        Text(stringResource(R.string.pdf_page_operations_choose))
                     }
                 }
             }
@@ -139,29 +152,97 @@ fun PdfRoute(
                     Text(featureText(R.string.pdf_links, metadata.hasLinks))
                     Text(featureText(R.string.pdf_annotations, metadata.hasAnnotations))
                     Text(featureText(R.string.pdf_signatures, metadata.hasDigitalSignatures))
-                    OutlinedTextField(
-                        value = state.maximumPagesText,
-                        onValueChange = viewModel::setMaximumPages,
-                        label = { Text(stringResource(R.string.pdf_maximum_pages)) },
-                        singleLine = true,
-                    )
-                    val maximumBytes = state.maximumSizeText.toLongOrNull()?.times(1_000L)
-                    val maximumPages = state.maximumPagesText.toIntOrNull()
-                    val ready = maximumBytes != null && maximumPages != null &&
-                        metadata.byteCount <= maximumBytes &&
-                        metadata.pageCount <= maximumPages
-                    Text(
-                        if (ready) {
-                            stringResource(R.string.pdf_input_ready)
-                        } else {
-                            stringResource(R.string.pdf_input_not_ready)
-                        },
-                        color = if (ready) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.error
-                        },
-                    )
+                    if (!state.isOperationMode) {
+                        OutlinedTextField(
+                            value = state.maximumPagesText,
+                            onValueChange = viewModel::setMaximumPages,
+                            label = { Text(stringResource(R.string.pdf_maximum_pages)) },
+                            singleLine = true,
+                        )
+                        val maximumBytes = state.maximumSizeText.toLongOrNull()?.times(1_000L)
+                        val maximumPages = state.maximumPagesText.toIntOrNull()
+                        val ready = maximumBytes != null && maximumPages != null &&
+                            metadata.byteCount <= maximumBytes &&
+                            metadata.pageCount <= maximumPages
+                        Text(
+                            if (ready) {
+                                stringResource(R.string.pdf_input_ready)
+                            } else {
+                                stringResource(R.string.pdf_input_not_ready)
+                            },
+                            color = if (ready) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.error
+                            },
+                        )
+                    }
+                }
+            }
+            if (state.isOperationMode) {
+                item {
+                    Section(stringResource(R.string.pdf_page_operations)) {
+                        Text(stringResource(R.string.pdf_page_operations_notice))
+                        Text(
+                            stringResource(
+                                R.string.pdf_operation_source_summary,
+                                state.operationSources.size,
+                                state.operationPages.size,
+                            ),
+                        )
+                        state.operationPages.forEachIndexed { index, page ->
+                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text(
+                                    stringResource(
+                                        R.string.pdf_operation_page,
+                                        index + 1,
+                                        page.sourceIndex + 1,
+                                        page.pageIndex + 1,
+                                        page.rotationQuarterTurns * 90,
+                                    ),
+                                )
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    TextButton(
+                                        onClick = {
+                                            viewModel.moveOperationPage(index, -1)
+                                        },
+                                        enabled = index > 0 && !state.isBusy,
+                                    ) { Text(stringResource(R.string.action_move_up)) }
+                                    TextButton(
+                                        onClick = {
+                                            viewModel.moveOperationPage(index, 1)
+                                        },
+                                        enabled = index + 1 < state.operationPages.size &&
+                                            !state.isBusy,
+                                    ) { Text(stringResource(R.string.action_move_down)) }
+                                }
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    TextButton(
+                                        onClick = { viewModel.rotateOperationPage(index) },
+                                        enabled = !state.isBusy,
+                                    ) { Text(stringResource(R.string.action_rotate)) }
+                                    TextButton(
+                                        onClick = { viewModel.deleteOperationPage(index) },
+                                        enabled = state.operationPages.size > 1 && !state.isBusy,
+                                    ) { Text(stringResource(R.string.action_delete)) }
+                                    TextButton(
+                                        onClick = { viewModel.showOperationPage(index) },
+                                        enabled = !state.isBusy,
+                                    ) { Text(stringResource(R.string.pdf_preview_action)) }
+                                }
+                            }
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(
+                                onClick = viewModel::resetOperationPages,
+                                enabled = !state.isBusy,
+                            ) { Text(stringResource(R.string.pdf_reset_pages)) }
+                            Button(
+                                onClick = viewModel::startPageOperation,
+                                enabled = state.operationPages.isNotEmpty() && !state.isBusy,
+                            ) { Text(stringResource(R.string.pdf_create_edited_copy)) }
+                        }
+                    }
                 }
             }
             state.preview?.let { preview ->
@@ -173,24 +254,53 @@ fun PdfRoute(
                                 R.string.pdf_preview_page,
                                 state.previewPage + 1,
                             ),
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .graphicsLayer {
+                                    rotationZ = if (state.isOperationMode) {
+                                        (
+                                            state.operationPages
+                                                .getOrNull(state.previewPage)
+                                                ?.rotationQuarterTurns ?: 0
+                                            ) * 90f
+                                    } else {
+                                        0f
+                                    }
+                                },
                             contentScale = ContentScale.Fit,
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             OutlinedButton(
-                                onClick = { viewModel.showPage(state.previewPage - 1) },
+                                onClick = {
+                                    if (state.isOperationMode) {
+                                        viewModel.showOperationPage(state.previewPage - 1)
+                                    } else {
+                                        viewModel.showPage(state.previewPage - 1)
+                                    }
+                                },
                                 enabled = state.previewPage > 0 && !state.isBusy,
                             ) { Text(stringResource(R.string.pdf_previous_page)) }
                             OutlinedButton(
-                                onClick = { viewModel.showPage(state.previewPage + 1) },
-                                enabled = state.previewPage + 1 < metadata.pageCount &&
+                                onClick = {
+                                    if (state.isOperationMode) {
+                                        viewModel.showOperationPage(state.previewPage + 1)
+                                    } else {
+                                        viewModel.showPage(state.previewPage + 1)
+                                    }
+                                },
+                                enabled = state.previewPage + 1 <
+                                    (if (state.isOperationMode) {
+                                        state.operationPages.size
+                                    } else {
+                                        metadata.pageCount
+                                    }) &&
                                     !state.isBusy,
                             ) { Text(stringResource(R.string.pdf_next_page)) }
                         }
                     }
                 }
             }
-            item {
+            if (!state.isOperationMode) item {
                 Section(stringResource(R.string.pdf_compression)) {
                     Text(stringResource(R.string.pdf_safe_unavailable))
                     Text(stringResource(R.string.pdf_flatten_warning))

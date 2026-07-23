@@ -123,7 +123,18 @@ Use the Phase 1 branch and PR pattern for every numbered phase:
   - Verification on 2026-07-23: 28 unit tests, `lintDebug`, `assembleDebug`, minified/R8
     `bundleRelease`, Bundletool validation, universal APK 16 KB ZIP alignment, and native ELF
     inspection passed. No connected-device pass is claimed because the available device is offline.
-- [ ] Phase 8 — Structure-preserving PDF page operations
+- [x] Phase 8 — Structure-preserving PDF page operations
+  - Supported unencrypted, unsigned, non-form PDFs can be merged or page-extracted/split, reordered,
+    rotated, and pruned without rasterizing text, vector, image, link, or page-annotation objects.
+  - The edit plan persists through process recreation and is bounded to 10 inputs, 100 output pages,
+    and 200 MiB. Encrypted PDFs, AcroForms, and digitally signed PDFs are blocked rather than
+    silently damaged; document-level outlines/metadata are explicitly not guaranteed unchanged.
+  - Outputs are built privately, reopened through both the structure engine and independent Android
+    renderer, checked for page/content/annotation presence and requested dimensions/order, then
+    every page is rendered before Ready.
+  - Verification on 2026-07-23: 29 unit tests, Android-test source compilation, `lintDebug`,
+    `assembleDebug`, minified/R8 `bundleRelease`, Bundletool validation, universal APK 16 KB ZIP
+    alignment, and native ELF inspection passed. No connected device was available.
 - [ ] Phase 9 — Bounded batch processing
 - [ ] Phase 10 — Optional lifetime Pro purchase
 
@@ -131,7 +142,7 @@ Use the Phase 1 branch and PR pattern for every numbered phase:
 
 The user commissioned the complete post-v1 roadmap on 2026-07-23. Continue automatically through
 Phases 6–10 using the per-phase Git workflow above. Complete, verify, publish, and merge exactly one
-phase before creating the next phase branch. Phase 8 is the current phase.
+phase before creating the next phase branch. Phase 9 is the current phase.
 
 ## 2026-07-23 single-module conversion checkpoint
 

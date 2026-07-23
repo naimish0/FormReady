@@ -12,9 +12,10 @@ User-selected content URI, external camera capture, or local drawing
   -> explicit user-selected save/share destination
 ```
 
-The application has no network permission, custom backend, analytics, ads, consent, Billing,
-cloud database, or remote AI dependency. Photo or signature pixels never leave the device unless
-the user explicitly saves or shares the validated output.
+The application has no custom backend, analytics, ads, consent, Billing, cloud database, or remote
+AI dependency. ML Kit contributes the documented network permission for module delivery and SDK
+metrics; photo or signature pixels never leave the device unless the user explicitly saves or
+shares the validated output.
 
 ## Controls
 
@@ -49,9 +50,8 @@ file names, paths, URIs, thumbnails, OCR, signatures, face data, and user-entere
   header and platform renderer both accept them.
 - Page count, page dimensions, full-document bytes, render pixels, compression passes, JPEG
   quality, and render DPI are bounded with named floors/ceilings.
-- Safe compression is disabled because no structure-aware dependency is shipped. Strong output
-  cannot start without explicit acknowledgement that page structure and digital signatures may
-  be lost.
+- Strong compatibility compression cannot start without explicit acknowledgement that page
+  structure and digital signatures may be lost.
 - Temporary page images and candidate PDFs are private and deleted after success, failure, or
   cancellation; abandoned images-to-PDF directories expire during startup cleanup.
 
@@ -79,6 +79,17 @@ file names, paths, URIs, thumbnails, OCR, signatures, face data, and user-entere
   its normalized mask or export with the original background when the beta model is unsuitable.
 - Temporary full-resolution inputs remain in no-backup staging; external-camera captures and print
   candidates participate in private temporary-file cleanup.
+
+## Phase 8 PDF page-operation controls
+
+- PdfBox-Android copies supported PDF page objects without raster flattening for merge, page
+  extraction/split, reorder, rotation, and deletion. The result is reopened with the independent
+  platform renderer, every page is rendered, and count/dimensions are checked against the edit plan.
+- Encrypted PDFs, AcroForms, and digitally signed PDFs are rejected before the structure engine is
+  invoked. FormReady does not remove protection, invalidate signatures silently, or claim that
+  document-level outlines and metadata are unchanged.
+- Inputs are limited to 10 PDFs, 100 total pages, and 200 MiB. They remain in bounded no-backup
+  staging; partial and failed outputs are removed.
 
 ## Threats tracked
 

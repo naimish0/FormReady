@@ -77,6 +77,10 @@ dependencies {
     implementation(libs.google.mlkit.text.recognition.devanagari)
     implementation(libs.google.mlkit.face.detection)
     implementation(libs.google.mlkit.selfie.segmentation)
+    implementation(libs.pdfbox.android) {
+        // Protected/encrypted/signature-bearing PDFs are rejected before PDFBox loading.
+        exclude(group = "org.bouncycastle")
+    }
     ksp(libs.androidx.room.compiler)
     ksp(libs.androidx.hilt.compiler)
     ksp(libs.dagger.hilt.compiler)

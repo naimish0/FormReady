@@ -19,3 +19,8 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+# PdfBox-Android exposes optional JPX and public-key encryption paths. FormReady does not ship
+# those optional libraries: protected PDFs are rejected before page operations and JPX decoding is
+# not used by object-level page import.
+-dontwarn com.gemalto.jp2.**
+-dontwarn org.bouncycastle.**

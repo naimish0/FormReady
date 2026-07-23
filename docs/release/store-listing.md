@@ -36,9 +36,11 @@ selected.
 
 - Check actual file size, page count, page dimensions and orientation.
 - Build a PDF from ordered images.
+- Merge PDFs or extract, reorder, rotate and delete pages without rasterizing supported documents.
+  Encrypted PDFs, forms and digitally signed PDFs are blocked to avoid silently damaging them.
 - Use clearly disclosed compatibility compression when you accept that searchable text, links,
   forms, annotations, accessibility information and digital signatures may be removed.
-- FormReady does not claim a structure-preserving “safe compression” mode when one is unavailable.
+- Review edited copies because document-level outlines and metadata can change.
 
 ### Reuse requirements privately
 
@@ -60,7 +62,7 @@ Support: naimish.app@gmail.com
 
 - Exact dimensions, DPI and byte limits
 - Private photo and signature preparation
-- Honest PDF inspection and compatibility export
+- PDF inspection, supported page operations and compatibility export
 - Reopened output validation
 - Reusable custom presets and local history
 - No account, backend, analytics or ads

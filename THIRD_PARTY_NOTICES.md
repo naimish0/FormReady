@@ -15,5 +15,10 @@ services; OCR model binaries are packaged in the app.
 Phase 7 also bundles ML Kit Face Detection 16.1.7 and the beta ML Kit Selfie Segmentation
 16.0.0-beta6 model under those terms.
 
+Phase 8 includes PdfBox-Android 2.0.27.0, an Apache PDFBox Android port licensed under Apache
+License 2.0, for structure-preserving page copying and rotation. Its optional cryptographic
+dependencies are excluded because FormReady rejects encrypted and signature-bearing PDFs before
+page operations.
+
 No GPL/AGPL PDF engine, font/image asset pack, advertising/consent SDK, Billing SDK, general
 network client or app-authored analytics SDK is included.
