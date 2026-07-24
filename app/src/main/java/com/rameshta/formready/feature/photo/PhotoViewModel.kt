@@ -106,6 +106,11 @@ data class PhotoUiState(
     val hasDraft: Boolean
         get() = metadata != null || isLoadingInput || jobStatus != null
 
+    val canSelectPhoto: Boolean
+        get() = !isLoadingInput &&
+            jobStatus != JobStatus.QUEUED &&
+            jobStatus != JobStatus.RUNNING
+
     val exactMaximumBytes: Long?
         get() = maximumKbText.toLongOrNull()?.let {
             runCatching { Math.multiplyExact(it, byteUnit.bytesPerUnit) }.getOrNull()
@@ -231,8 +236,12 @@ class PhotoViewModel @Inject constructor(
 
     fun selectPhoto(uri: Uri, reportedMimeType: String?) {
         viewModelScope.launch {
+            jobObserver?.cancel()
+            outputObserver?.cancel()
             currentDraftId()?.let { existing ->
-                if (mutableState.value.jobStatus == null) preparationService.discard(existing)
+                if (mutableState.value.jobStatus != JobStatus.SUCCEEDED) {
+                    preparationService.discard(existing)
+                }
             }
             val draftId = UUID.randomUUID()
             savedStateHandle[KEY_DRAFT_ID] = draftId.toString()

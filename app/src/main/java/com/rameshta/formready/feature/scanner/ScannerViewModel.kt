@@ -140,6 +140,10 @@ class ScannerViewModel @Inject constructor(
     }
 
     fun editPage(index: Int) {
+        if (mutableState.value.editingPageIndex == index) {
+            cancelEdit()
+            return
+        }
         val page = pages.getOrNull(index) ?: return
         viewModelScope.launch {
             val preview = withContext(Dispatchers.IO) { decodeSampled(page.file, 1_200) }

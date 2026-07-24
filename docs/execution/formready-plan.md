@@ -186,6 +186,20 @@ branch, verification, pull-request, and merge workflow.
   running Android 16, including navigation coverage for every top-level feature.
 - No manifest, dependency, data-flow, processing, or permission change was introduced.
 
+## 2026-07-24 photo replacement and editor-toggle checkpoint
+
+- Photo and ID-photo screens now allow a different image to be selected after successful, failed,
+  or cancelled processing. The replacement action opens the picker directly, preserves the entered
+  requirements and completed export, detaches old observers, and cleans unfinished private input.
+- Selected-image previews have a guaranteed visible height and are automatically brought onscreen
+  after both initial selection and replacement.
+- The scanner manual crop/filter action now toggles its editor closed when the same button is
+  tapped again; its label changes to describe the hide action.
+- Verification passed: `./gradlew test`, `./gradlew :app:lintDebug`,
+  `./gradlew :app:assembleDebug`, `./gradlew :app:bundleRelease`, and
+  `./gradlew :app:connectedDebugAndroidTest`. All 34 connected tests passed on a Samsung SM-S928B
+  running Android 16.
+
 ## Known release gates
 
 - Hindi resources and native-speaker approval remain required before advertising Hindi support.
