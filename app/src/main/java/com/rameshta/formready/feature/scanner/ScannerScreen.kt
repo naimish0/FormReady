@@ -244,7 +244,17 @@ private fun ScannerScreen(
                             TextButton(
                                 onClick = { onEdit(index) },
                                 enabled = !state.isBusy,
-                            ) { Text(stringResource(R.string.scanner_manual_edit)) }
+                            ) {
+                                Text(
+                                    stringResource(
+                                        if (state.editingPageIndex == index) {
+                                            R.string.scanner_manual_edit_hide
+                                        } else {
+                                            R.string.scanner_manual_edit
+                                        },
+                                    ),
+                                )
+                            }
                         }
                     }
                 }

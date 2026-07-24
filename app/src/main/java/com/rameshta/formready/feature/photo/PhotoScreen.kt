@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -39,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -88,10 +90,16 @@ fun PhotoRoute(
     var printSheet by remember { mutableStateOf(PrintSheetSize.FOUR_BY_SIX) }
     var printCopies by remember { mutableStateOf(4) }
     var printCutGuides by remember { mutableStateOf(true) }
+    val listState = rememberLazyListState()
     val photoPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
     ) { uri ->
         if (uri != null) viewModel.selectPhoto(uri, context.contentResolver.getType(uri))
+    }
+    val choosePhoto = {
+        photoPicker.launch(
+            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
+        )
     }
     val idCamera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) {
         viewModel.completeIdCapture(it)
@@ -115,6 +123,11 @@ fun PhotoRoute(
         if (state.hasDraft && state.result == null) confirmDiscard = true else onBack()
     }
     BackHandler(onBack = ::requestBack)
+    LaunchedEffect(state.preview) {
+        if (state.preview != null) {
+            listState.animateScrollToItem(if (state.isIdPhotoMode) 5 else 4)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -139,6 +152,7 @@ fun PhotoRoute(
         },
     ) { padding ->
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
@@ -170,14 +184,8 @@ fun PhotoRoute(
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(
-                        onClick = {
-                            photoPicker.launch(
-                                PickVisualMediaRequest(
-                                    ActivityResultContracts.PickVisualMedia.ImageOnly,
-                                ),
-                            )
-                        },
-                        enabled = !state.isLoadingInput && state.jobStatus == null,
+                        onClick = choosePhoto,
+                        enabled = state.canSelectPhoto,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text(
@@ -197,7 +205,7 @@ fun PhotoRoute(
                                     .onSuccess(idCamera::launch)
                                     .onFailure { viewModel.reportExternalActionUnavailable() }
                             },
-                            enabled = !state.isLoadingInput && state.jobStatus == null,
+                            enabled = state.canSelectPhoto,
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Text(stringResource(R.string.id_photo_camera))
@@ -250,7 +258,8 @@ fun PhotoRoute(
                                     contentScale = ContentScale.Fit,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .heightIn(max = 360.dp),
+                                        .heightIn(min = 220.dp, max = 360.dp)
+                                        .background(MaterialTheme.colorScheme.surfaceVariant),
                                 )
                             }
                         }
@@ -353,8 +362,11 @@ fun PhotoRoute(
                         ) {
                             Text(stringResource(R.string.action_share))
                         }
-                        OutlinedButton(onClick = viewModel::prepareAnother) {
-                            Text(stringResource(R.string.action_prepare_another))
+                        OutlinedButton(
+                            onClick = choosePhoto,
+                            enabled = state.canSelectPhoto,
+                        ) {
+                            Text(stringResource(R.string.photo_choose_different))
                         }
                     }
                 }

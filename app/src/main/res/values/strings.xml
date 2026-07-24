@@ -375,6 +375,7 @@
     <string name="action_rotate">Rotate</string>
     <string name="action_delete">Delete</string>
     <string name="scanner_manual_edit">Manual crop and filter</string>
+    <string name="scanner_manual_edit_hide">Hide manual crop and filter</string>
     <string name="scanner_manual_crop">Four-corner correction</string>
     <string name="scanner_manual_crop_help">Move each corner until it follows the page edge, then choose a colour filter. FormReady limits very large previews to keep editing responsive.</string>
     <string name="scanner_page_preview">Selected scan page preview</string>

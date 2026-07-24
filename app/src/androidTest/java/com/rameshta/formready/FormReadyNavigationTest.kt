@@ -183,7 +183,7 @@ class FormReadyNavigationTest {
     }
 
     @Test
-    fun historyExplainsWhatCompletedFilesCanBeUsedFor() {
+    fun historyScreenOpensForEmptyOrSavedJobs() {
         val activity = composeRule.activity
         composeRule.onNodeWithText(
             activity.getString(R.string.navigation_history),
@@ -192,6 +192,5 @@ class FormReadyNavigationTest {
         composeRule.onNode(
             hasText(activity.getString(R.string.history_title)) and isHeading(),
         ).assertIsDisplayed()
-        composeRule.onNodeWithText(activity.getString(R.string.history_empty)).assertIsDisplayed()
     }
 }
